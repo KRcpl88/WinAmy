@@ -4,3 +4,4 @@ Makefile
 .deps
 Amy.log
 *.db
+x64
