@@ -33,6 +33,8 @@
  * evaluation.c - positional evaluation routines
  */
 
+#include "amy.h"
+
 #include "dbase.h"
 #include "hashtable.h"
 #include "init.h"

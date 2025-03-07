@@ -33,6 +33,8 @@
  * search_io.c - output search results
  */
 
+#include "amy.h"
+
 #include "state_machine.h"
 #include "utils.h"
 #include <string.h>

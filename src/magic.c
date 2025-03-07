@@ -33,6 +33,8 @@
  * magic.c - precalculates the tables needed for magic bitboards.
  */
 
+#include "amy.h"
+
 #include "assert.h"
 #include "inline.h"
 

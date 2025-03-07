@@ -33,6 +33,8 @@
  * pgn.c - pgn handling routines
  */
 
+#include "amy.h"
+
 #include "config.h"
 
 #include <string.h>

@@ -33,6 +33,8 @@
  * dbase.c - global database manipulation routines
  */
 
+#include "amy.h"
+
 #include <string.h>
 
 #include "dbase.h"

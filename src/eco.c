@@ -33,10 +33,11 @@
  * eco.c - ECO handling routines
  */
 
+#include "amy.h"
+
 #include <errno.h>
 #include <string.h>
 
-#include "amy.h"
 #include "dbase.h"
 #include "tree.h"
 #include "utils.h"
@@ -46,7 +47,7 @@
 #ifdef ECODIR
 #define DEFAULT_ECO_NAME ECODIR PATH_SEPARATOR ECO_NAME
 #else
-#warning "ECODIR is not defined!"
+#define DEFAULT_ECO_NAME "ECODIR\\ECO"
 #endif
 
 void ParseEcoPgn(char *fname) {

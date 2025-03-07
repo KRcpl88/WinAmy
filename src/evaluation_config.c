@@ -29,27 +29,42 @@
 
 */
 
+#include "amy.h"
+
 #include <stdint.h>
 #include <stdio.h>
 
-#include "amy.h"
 #include "dbase.h"
 #include "evaluation.h"
 #include "search.h"
 #include "utils.h"
 #include "yaml.h"
 
+extern int ExtendInCheck;
+extern int ExtendDoubleCheck;
+extern int ExtendDiscoveredCheck;
+extern int ExtendSingularReply;
+
+extern int ExtendPassedPawn;
+extern int ExtendZugzwang;
+extern int ReduceNullMove;
+extern int ReduceNullMoveDeep;
+
+extern int16_t ExtendRecapture[];
+
+
+
 /** The name of the current configuration. */
 char *ConfigurationName = "default";
 
-static void configure_name(struct Node *);
-static void configure_search(struct Node *);
-static void configure_pawn_scores(struct Node *);
-static void configure_knight_scores(struct Node *);
-static void configure_bishop_scores(struct Node *);
-static void configure_rook_scores(struct Node *);
-static void configure_queen_scores(struct Node *);
-static void configure_king_scores(struct Node *);
+static void configure_name(struct YamlNode *);
+static void configure_search(struct YamlNode *);
+static void configure_pawn_scores(struct YamlNode *);
+static void configure_knight_scores(struct YamlNode *);
+static void configure_bishop_scores(struct YamlNode *);
+static void configure_rook_scores(struct YamlNode *);
+static void configure_queen_scores(struct YamlNode *);
+static void configure_king_scores(struct YamlNode *);
 static char *read_file(char *);
 static void print_piece_square_table(FILE *, int16_t *);
 static void print_array(FILE *, char *, int16_t *, size_t);
@@ -63,7 +78,7 @@ void LoadEvaluationConfig(char *file_name) {
     if (buffer == NULL)
         return;
 
-    struct Node *node = parse_yaml(buffer);
+    struct YamlNode *node = parse_yaml(buffer);
     free(buffer);
 
     if (node == NULL) {
@@ -233,7 +248,7 @@ static void print_array(FILE *fout, char *prefix, int16_t *array,
 /**
  * Set a named parameter.
  */
-static void set_parameter(struct Node *node, char *name, int *parameter) {
+static void set_parameter(struct YamlNode *node, char *name, int *parameter) {
     struct IntLookupResult result = get_as_int(node, name);
     if (result.result_code == OK) {
         Print(9, "%s: %d\n", name, result.result);
@@ -241,7 +256,7 @@ static void set_parameter(struct Node *node, char *name, int *parameter) {
     }
 }
 
-static void set_piece_square_table(struct Node *node, char *name,
+static void set_piece_square_table(struct YamlNode *node, char *name,
                                    int16_t *target_table) {
     int piece_square_table[64];
 
@@ -264,7 +279,7 @@ static void set_piece_square_table(struct Node *node, char *name,
     }
 }
 
-static void set_array(struct Node *node, char *name, int16_t *target_array,
+static void set_array(struct YamlNode *node, char *name, int16_t *target_array,
                       size_t count) {
     int *destination = malloc(sizeof(int) * count);
     abort_if_allocation_failed(destination);
@@ -288,7 +303,7 @@ static void set_array(struct Node *node, char *name, int16_t *target_array,
     free(destination);
 }
 
-static void configure_name(struct Node *node) {
+static void configure_name(struct YamlNode *node) {
     struct StringLookupResult result = get_as_string(node, "name");
 
     if (result.result_code == OK) {
@@ -298,7 +313,7 @@ static void configure_name(struct Node *node) {
     }
 }
 
-static void configure_search(struct Node *node) {
+static void configure_search(struct YamlNode *node) {
     set_parameter(node, "search.extend_in_check", &ExtendInCheck);
     set_parameter(node, "search.extend_double_check", &ExtendDoubleCheck);
     set_parameter(node, "search.extend_discovered_check",
@@ -311,7 +326,7 @@ static void configure_search(struct Node *node) {
     set_array(node, "search.extend_recapture", ExtendRecapture + 1, 5);
 }
 
-static void configure_pawn_scores(struct Node *node) {
+static void configure_pawn_scores(struct YamlNode *node) {
     set_parameter(node, "pawn.doubled", &DoubledPawn);
     set_parameter(node, "pawn.backward", &BackwardPawn);
     set_parameter(node, "pawn.hidden_backward", &HiddenBackwardPawn);
@@ -340,7 +355,7 @@ static void configure_pawn_scores(struct Node *node) {
     set_array(node, "pawn.scale_open_files", ScaleOpenFiles, 5);
 }
 
-static void configure_knight_scores(struct Node *node) {
+static void configure_knight_scores(struct YamlNode *node) {
     set_parameter(node, "knight.value", &Value[Knight]);
     set_parameter(node, "knight.king_proximity", &KnightKingProximity);
     set_parameter(node, "knight.blocks_c_pawn", &KnightBlocksCPawn);
@@ -351,7 +366,7 @@ static void configure_knight_scores(struct Node *node) {
                            KnightOutpost);
 }
 
-static void configure_bishop_scores(struct Node *node) {
+static void configure_bishop_scores(struct YamlNode *node) {
     set_parameter(node, "bishop.value", &Value[Bishop]);
     set_parameter(node, "bishop.mobility", &BishopMobility);
     set_parameter(node, "bishop.king_proximity", &BishopKingProximity);
@@ -361,7 +376,7 @@ static void configure_bishop_scores(struct Node *node) {
     set_piece_square_table(node, "bishop.piece_square_table", BishopPos);
 }
 
-static void configure_rook_scores(struct Node *node) {
+static void configure_rook_scores(struct YamlNode *node) {
     set_parameter(node, "rook.value", &Value[Rook]);
     set_parameter(node, "rook.mobility", &RookMobility);
     set_parameter(node, "rook.on_open_file", &RookOnOpenFile);
@@ -373,7 +388,7 @@ static void configure_rook_scores(struct Node *node) {
     set_piece_square_table(node, "rook.piece_square_table", RookPos);
 }
 
-static void configure_queen_scores(struct Node *node) {
+static void configure_queen_scores(struct YamlNode *node) {
     set_parameter(node, "queen.value", &Value[Queen]);
     set_parameter(node, "queen.king_proximity", &QueenKingProximity);
     set_piece_square_table(node, "queen.piece_square_table", QueenPos);
@@ -381,7 +396,7 @@ static void configure_queen_scores(struct Node *node) {
                            QueenPosDevelopment);
 }
 
-static void configure_king_scores(struct Node *node) {
+static void configure_king_scores(struct YamlNode *node) {
     set_parameter(node, "king.blocks_rook", &KingBlocksRook);
     set_parameter(node, "king.in_center", &KingInCenter);
     set_parameter(node, "king.safety_scale", &KingSafetyScale);

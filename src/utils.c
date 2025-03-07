@@ -32,8 +32,12 @@
  * utils.c - utility routines
  */
 
+#include "amy.h"
+
 #include "config.h"
 
+#include <stdbool.h>
+#include <stdio.h>
 #include <limits.h>
 #include <stdarg.h>
 #include <sys/stat.h>
@@ -44,9 +48,10 @@
 #endif
 #include <time.h>
 
-#include "amy.h"
 #include "search.h"
 #include "utils.h"
+
+extern bool XBoardMode;
 
 FILE *LogFile = NULL;
 int Verbosity = 9;
@@ -239,7 +244,7 @@ int InputReady(void) {
     static HANDLE inh;
     DWORD dw;
 
-    if (!XBoardMode && !isatty(fileno(stdin)))
+    if (!XBoardMode && !_isatty(_fileno(stdin)))
         return (0);
     if (XBoardMode) {
 #if defined(FILE_CNT)

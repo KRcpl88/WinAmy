@@ -34,13 +34,13 @@
 
 #include <stdbool.h>
 
-typedef enum { SCALAR = 0, LIST, DICT } NodeType;
+typedef enum { SCALAR = 0, LIST, DICT } YamlNodeType;
 
 typedef enum {
     END = 0,
     UNKNOWN,
     COLON,
-    WORD,
+    TT_WORD,
     OPENING_BRACKET,
     CLOSING_BRACKET,
     COMMA,
@@ -48,23 +48,23 @@ typedef enum {
     CLOSING_BRACE,
     BAD_INDENT,
     CONTINUE,
-} TokenType;
+} YamlTokenType;
 
 typedef enum { OK = 0, NOT_FOUND, TYPE_ERROR, FORMAT_ERROR } LookupResultCode;
 
-struct Token {
-    TokenType type;
+struct YamlToken {
+    YamlTokenType type;
     char *text;
 };
 
-struct Node {
-    NodeType type;
+struct YamlNode {
+    YamlNodeType type;
     void *payload;
 };
 
-struct ListNode {
-    struct ListNode *next;
-    struct Node *value;
+struct YamlListNode {
+    struct YamlListNode *next;
+    struct YamlNode *value;
 };
 
 struct StringLookupResult {
@@ -87,13 +87,13 @@ struct IntArrayLookupResult {
     unsigned int elements_read;
 };
 
-struct Node *parse_yaml(char *);
-struct StringLookupResult get_as_string(struct Node *, char *);
-struct IntLookupResult get_as_int(struct Node *, char *);
-struct ListLookupResult get_as_list(struct Node *, char *);
-struct IntArrayLookupResult get_as_int_array(struct Node *, char *, int *, int);
+struct YamlNode *parse_yaml(char *);
+struct StringLookupResult get_as_string(struct YamlNode*, char *);
+struct IntLookupResult get_as_int(struct YamlNode*, char *);
+struct ListLookupResult get_as_list(struct YamlNode*, char *);
+struct IntArrayLookupResult get_as_int_array(struct YamlNode*, char *, int *, int);
 void abort_if_allocation_failed(void *x);
 
-void free_yaml_node(struct Node *);
+void free_yaml_node(struct YamlNode*);
 
 #endif

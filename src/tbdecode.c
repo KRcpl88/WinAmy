@@ -1,6 +1,8 @@
 #ifndef TBDECODE
 #define TBDECODE
 
+#include "amy.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -72,7 +74,7 @@ static void _local_assert(int lineno) {
 #define dprintf(x) ((void)0)
 #endif
 
-extern "C" int cbEGTBCompBytes;
+//extern "C" int cbEGTBCompBytes;
 
 int cbEGTBCompBytes = 0;
 

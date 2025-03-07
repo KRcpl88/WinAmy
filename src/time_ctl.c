@@ -33,6 +33,8 @@
  * time_ctl.c - time management routines
  */
 
+#include "amy.h"
+
 #include <stdio.h>
 #include <string.h>
 

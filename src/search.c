@@ -33,6 +33,8 @@
  * search.c - tree searching routines
  */
 
+#include "amy.h"
+
 #include "search.h"
 #include "bookup.h"
 #include "commands.h"

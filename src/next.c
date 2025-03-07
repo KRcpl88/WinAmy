@@ -33,6 +33,8 @@
  * next.c - move selection routines
  */
 
+#include "amy.h"
+
 #include "next.h"
 #include "dbase.h"
 #include "evaluation.h"

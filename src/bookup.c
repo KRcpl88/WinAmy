@@ -33,10 +33,11 @@
  * bookup.c - opening book management routines
  */
 
+#include "amy.h"
+
 #include <errno.h>
 #include <string.h>
 
-#include "amy.h"
 #include "dbase.h"
 #include "eco.h"
 #include "pgn.h"
@@ -50,7 +51,7 @@
 #ifdef BOOKDIR
 #define DEFAULT_BOOK_NAME BOOKDIR PATH_SEPARATOR BOOK_NAME
 #else
-#warning "BOOKDIR is not defined!"
+#define DEFAULT_BOOK_NAME "bookdir\\defaultbookname"
 #endif
 
 #define WITH_ELO 1
