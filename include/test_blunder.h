@@ -29,10 +29,9 @@
 
 */
 
-#ifndef EVALUATION_CONFIG_H
-#define EVALUATION_CONFIG_H
+#ifndef TEST_BLUNDER_H
+#define TEST_BLUNDER_H
 
-void LoadEvaluationConfig(char *);
-void SaveEvaluationConfig(char *);
+void test_all_blunder(void);
 
-#endif /* EVALUATION_H */
+#endif

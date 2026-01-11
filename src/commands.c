@@ -2,7 +2,7 @@
 
     Amy - a chess playing program
 
-    Copyright (c) 2002-2025, Thorsten Greiner
+    Copyright (c) 2002-2026, Thorsten Greiner
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -36,13 +36,15 @@
 #include <signal.h>
 #include <string.h>
 
-#include "amy.h"
+#include "bitboard.h"
+#include "blunder.h"
 #include "bookup.h"
 #include "commands.h"
 #include "dbase.h"
 #include "eco.h"
 #include "evaluation.h"
 #include "evaluation_config.h"
+#include "filter.h"
 #include "heap.h"
 #include "inline.h"
 #include "next.h"
@@ -90,17 +92,20 @@ static void Conf(char *);
 static void SaveConf(char *);
 static void ShowScore(char *);
 static void TestScore(char *);
+static void SetSearchDepth(char *);
 
 static struct CommandEntry Commands[] = {
     {"analyze", &Analyze, false, false, "enter analyze mode (xboard)", NULL},
     {"anno", &Anno, false, false, "annotate a game", NULL},
     {"bench", &Benchmark, false, false, "run a benchmark", NULL},
+    {"blunder", &BlunderCheck, false, false, "check for blunders", NULL},
     {"book", &Book, false, false, "display book moves", NULL},
     {"bk", &Book, false, false, "display book moves (xboard)", NULL},
     {"bookup", &Bookup, false, false, "create a book", NULL},
     {"conf", &Conf, false, false, "load scoring config", NULL},
     {"conf-save", &SaveConf, false, false, "save scoring config", NULL},
     {"d", &Show, true, false, "display current position", NULL},
+    {"depth", &SetSearchDepth, false, false, "set maximum search depth", NULL},
     {"distribution", &ShowDistribution, true, false,
      "show terms of distribution", NULL},
     {"e", &ShowEco, false, false, "show ECO code", NULL},
@@ -109,6 +114,8 @@ static struct CommandEntry Commands[] = {
     {"epd", &SetEPD, false, false, "set position in EPD", NULL},
     {"edit", &Edit, false, false, "edit position (xboard!)", NULL},
     {"exit", &StopAnalyze, true, true, "exit analyze mode (xboard)", NULL},
+    {"filter", &FilterQuiescentPositions, false, false,
+     "filter quiescent positions", NULL},
     {"flatten", &Flatten, true, false, "flatten book", NULL},
     {"force", &Force, true, false, "switch force mode (xboard)", NULL},
     {"go", &Go, false, false, "start searching", NULL},
@@ -253,7 +260,7 @@ static void Test(char *fname) {
 
         /* TestSwap(); */
 
-        move = Iterate(p);
+        move = Iterate(p, NULL, M_NONE, NULL);
         for (j = 0; goodmove[j] != M_NONE; j++)
             if (move == goodmove[j])
                 correct = true;
@@ -336,7 +343,7 @@ static void TestScore(char *fname) {
         int score = EvaluatePosition(p);
 
         if (fout) {
-            int l = strlen(line);
+            size_t l = strlen(line);
             l--;
             line[l] = '\0';
             l--;
@@ -552,7 +559,7 @@ static void RunAnnotate(char *fname, int side) {
                           (p->ply / 2) + 1);
                     Print(0, "%s\n", SAN(p, themove, san_buffer));
                     if (side == -1 || (side == p->turn)) {
-                        Iterate(p);
+                        Iterate(p, NULL, M_NONE, NULL);
                     }
                     DoMove(p, themove);
                 }
@@ -586,7 +593,7 @@ static void Anno(char *args) {
 }
 
 static char *distribution =
-    "\n    Copyright (c) 2002-2025, Thorsten Greiner\n"
+    "\n    Copyright (c) 2002-2026, Thorsten Greiner\n"
     "    All rights reserved.\n"
     "\n"
     "    Redistribution and use in source and binary forms, with or without\n"
@@ -663,7 +670,7 @@ static void Benchmark(char *args) {
     int move = g1 | (f3 << 6);
     int i;
     const int cycles = 10000000;
-    int start, end;
+    unsigned long start, end;
     double elapsed;
     struct Position *p;
 
@@ -725,9 +732,9 @@ static void Perft(char *args) {
     BitBoard cnt = 0;
     heap_t heap = allocate_heap();
 
-    int start = GetTime();
+    unsigned long start = GetTime();
     cnt = SearchFully(CurrentPosition, cnt, depth, heap);
-    int end = GetTime();
+    unsigned long end = GetTime();
 
     free_heap(heap);
 
@@ -836,4 +843,13 @@ static void ShowScore(char *args) {
     InitEvaluation(CurrentPosition);
     int score = EvaluatePosition(CurrentPosition);
     Print(0, "Static evaluation: %d\n", score);
+}
+
+static void SetSearchDepth(char *args) {
+    if (args == NULL) {
+        Print(0, "Usage: depth <depth>");
+        return;
+    }
+
+    setMaxSearchDepth(atoi(args));
 }

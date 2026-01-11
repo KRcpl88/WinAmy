@@ -1,18 +1,19 @@
 /*
 
-   Amy - a chess playing program
+    Amy - a chess playing program
 
-   Copyright (c) 2002-2025, Thorsten Greiner All rights reserved.
+    Copyright (c) 2002-2026, Thorsten Greiner
+    All rights reserved.
 
-   Redistribution and use in source and binary forms, with or without
-   modification, are permitted provided that the following conditions are met:
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
 
-   * Redistributions of source code must retain the above copyright notice,
-     this list of conditions and the following disclaimer.
+    * Redistributions of source code must retain the above copyright notice,
+      this list of conditions and the following disclaimer.
 
-   * Redistributions in binary form must reproduce the above copyright notice,
-     this list of conditions and the following disclaimer in the documentation
-     and/or other materials provided with the distribution.
+    * Redistributions in binary form must reproduce the above copyright notice,
+      this list of conditions and the following disclaimer in the documentation
+      and/or other materials provided with the distribution.
 
    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -36,6 +37,7 @@
 
 #include <limits.h>
 #include <stdarg.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -104,24 +106,24 @@ int ReadLine(char *buffer, int cnt) {
 /**
  * Convert an int representing a time in seconds to a string.
  */
-char *FormatTime(unsigned int secs, char *buffer, size_t len) {
+char *FormatTime(unsigned long secs, char *buffer, size_t len) {
     if (secs >= 60 * ONE_SECOND) {
-        int mins;
+        long mins;
         secs = secs / ONE_SECOND;
         mins = secs / 60;
         secs -= mins * 60;
 
         if (mins >= 100)
-            snprintf(buffer, len, "%d:%02d", mins, secs);
+            snprintf(buffer, len, "%ld:%02ld", mins, secs);
         else if (mins >= 10)
-            snprintf(buffer, len, " %d:%02d", mins, secs);
+            snprintf(buffer, len, " %ld:%02ld", mins, secs);
         else
-            snprintf(buffer, len, "  %d:%02d", mins, secs);
+            snprintf(buffer, len, "  %ld:%02ld", mins, secs);
     } else {
         int tsecs = (secs % ONE_SECOND) / 10;
         secs = secs / ONE_SECOND;
 
-        snprintf(buffer, len, "  %2d.%d", secs, tsecs);
+        snprintf(buffer, len, "  %2ld.%d", secs, tsecs);
     }
     return buffer;
 }
@@ -188,17 +190,15 @@ char *FormatCount(unsigned long count, char *buffer, size_t len) {
 /**
  * Get the current time.
  */
-unsigned int GetTime(void) {
+unsigned long GetTime(void) {
 #if HAVE_GETTIMEOFDAY
     static struct timeval timeval;
-    unsigned int now;
 
     gettimeofday(&timeval, NULL);
-    now = timeval.tv_sec * 100 + (timeval.tv_usec / 10000L);
-    return now;
+    return timeval.tv_sec * 100 + (timeval.tv_usec / 10000L);
 #else
 #ifdef _WIN32
-    return ((unsigned int)GetTickCount() / 10);
+    return ((unsigned long)GetTickCount() / 10);
 #else
 #error TIME COUNTING MUST BE IMPLEMENTED
 #endif
@@ -336,4 +336,20 @@ int Percentage(unsigned long dividend, unsigned long divisor) {
 
     double ratio = (double)dividend / (double)divisor;
     return (int)(ratio * 100.0 + 0.5);
+}
+
+char *strip(char *buffer) {
+    char *start = buffer;
+    while (*start == ' ') {
+        start++;
+    }
+
+    char *end = start + strlen(start) - 1;
+
+    while (end > start && *end == ' ') {
+        *end = 0;
+        end--;
+    }
+
+    return start;
 }

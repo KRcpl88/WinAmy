@@ -2,7 +2,7 @@
 
     Amy - a chess playing program
 
-    Copyright (c) 2002-2025, Thorsten Greiner
+    Copyright (c) 2002-2026, Thorsten Greiner
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,6 @@
  * init.c - initialization routines
  */
 
-#include "amy.h"
 #include "dbase.h"
 #include "inline.h"
 #include "magic.h"
@@ -184,10 +183,10 @@ void InitPawnMasks(void) {
         if ((i & 7) > 0) {
             SetBit(ConnectedMask[i], i - 1);
             if ((i >> 3) > 1) {
-                SetBit(ConnectedMask[i], i + 7);
+                SetBit(ConnectedMask[i], i - 9);
             }
             if ((i >> 3) < 6) {
-                SetBit(ConnectedMask[i], i - 9);
+                SetBit(ConnectedMask[i], i + 7);
             }
         }
     }

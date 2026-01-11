@@ -2,7 +2,7 @@
 
     Amy - a chess playing program
 
-    Copyright (c) 2002-2025, Thorsten Greiner
+    Copyright (c) 2002-2026, Thorsten Greiner
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -43,12 +43,13 @@ void Print(int, char *, ...);
 void PrintNoLog(int, char *, ...);
 int InputReady(void);
 int ReadLine(char *buffer, int cnt);
-char *FormatTime(unsigned int, char *, size_t);
+char *FormatTime(unsigned long, char *, size_t);
 char *FormatScore(int, char *, size_t);
 char *FormatCount(unsigned long, char *, size_t);
-unsigned int GetTime(void);
+unsigned long GetTime(void);
 void GetTmpFileName(char *, size_t);
 char *nextToken(char **, const char *);
 int Percentage(unsigned long, unsigned long);
+char *strip(char *);
 
 #endif

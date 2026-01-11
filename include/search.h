@@ -2,7 +2,7 @@
 
     Amy - a chess playing program
 
-    Copyright (c) 2002-2025, Thorsten Greiner
+    Copyright (c) 2002-2026, Thorsten Greiner
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -62,17 +62,20 @@ extern int ReduceNullMove;
 extern int ReduceNullMoveDeep;
 extern int16_t ExtendRecapture[];
 
-extern unsigned int FHTime;
+extern unsigned long FHTime;
 extern bool AbortSearch;
 
 #if MP
 extern int NumberOfCPUs;
 #endif
 
-int Iterate(struct Position *);
+int Iterate(struct Position *, int *, move_t, int *);
 void SearchRoot(struct Position *);
 void AnalysisMode(struct Position *);
 pb_result_t PermanentBrain(struct Position *);
+int QuiescenceSearch(struct Position *);
+void setMaxSearchDepth(int);
+
 #if MP
 void StopHelpers(void);
 #endif

@@ -2,7 +2,7 @@
 
     Amy - a chess playing program
 
-    Copyright (c) 2002-2025, Thorsten Greiner
+    Copyright (c) 2002-2026, Thorsten Greiner
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -36,13 +36,15 @@
 #include "next.h"
 #include "dbase.h"
 #include "evaluation.h"
-#include "hashtable.h"
 #include "heap.h"
 #include "init.h"
 #include "inline.h"
 #include "search.h"
 #include "swap.h"
 #include "utils.h"
+#if MP
+#include "hashtable.h"
+#endif
 
 struct SearchData *CreateSearchData(struct Position *p) {
     struct SearchData *sd = calloc(1, sizeof(struct SearchData));

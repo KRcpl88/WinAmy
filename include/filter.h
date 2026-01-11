@@ -29,10 +29,9 @@
 
 */
 
-#ifndef EVALUATION_CONFIG_H
-#define EVALUATION_CONFIG_H
+#ifndef FILTER_H
+#define FILTER_H
 
-void LoadEvaluationConfig(char *);
-void SaveEvaluationConfig(char *);
+void FilterQuiescentPositions(char *);
 
-#endif /* EVALUATION_H */
+#endif

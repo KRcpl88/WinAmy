@@ -2,7 +2,7 @@
 
     Amy - a chess playing program
 
-    Copyright (c) 2002-2025, Thorsten Greiner
+    Copyright (c) 2002-2026, Thorsten Greiner
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,6 @@
 */
 
 #include "heap.h"
-#include "amy.h"
 
 static const int DATA_SIZE = 1024;
 static const int SECTION_SIZE = 32;

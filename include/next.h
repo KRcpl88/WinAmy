@@ -2,7 +2,7 @@
 
     Amy - a chess playing program
 
-    Copyright (c) 2002-2025, Thorsten Greiner
+    Copyright (c) 2002-2026, Thorsten Greiner
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -91,7 +91,11 @@ struct SearchData {
     unsigned long nodes_cnt, qnodes_cnt, check_nodes_cnt;
 
     move_t best_move;
+    int best_score;
     uint16_t depth;
+
+    move_t alternate_move;
+    int alternate_score;
 
     uint16_t nrootmoves;
     uint16_t movenum;
