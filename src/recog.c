@@ -34,9 +34,11 @@
  */
 
 /*
- * See Ernst A. Heinz, "Efficient Interior-Node Recognition"
+ * See Ernst A. Heinz, "Efficient Interior-YamlNode Recognition"
  * ICCA Journal Volume 21, No. 3, pp 156-167
  */
+
+#include "amy.h"
 
 #include "recog.h"
 #include "dbase.h"

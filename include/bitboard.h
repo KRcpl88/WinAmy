@@ -32,6 +32,8 @@
 #ifndef BITBOARD_H
 #define BITBOARD_H
 
+#include "amy.h"
+
 #include <stdint.h>
 
 #define SetMask(i) (1ULL << (i))

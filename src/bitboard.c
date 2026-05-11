@@ -39,12 +39,25 @@
 #define USE_8BIT 1
 
 #if !HAVE___BUILTIN_CTZLL
-int FindSetBit(BitBoard b) {
-#if HAVE_FFSLL
-    return 64 - ffsll(b);
-#else
-#error "Need ffsll."
+#if !HAVE_FFSLL
+int ffsll(long long num) {
+    //BUGBUG this coudl be significantly optimized with a byte lookup table
+    if (num == 0) return 0; // Return 0 if the number is zero
+
+    int position = 1; // Start with the least significant bit (1-based)
+
+    // Loop through each bit
+    while (!(num & 1)) {
+        num >>= 1; // Right shift the number
+        position++; // Increment the position
+    }
+
+    return position; // Return the position of the first set bit
+}
+
 #endif
+int FindSetBit(BitBoard b) {
+    return 64 - ffsll(b);
 }
 #endif
 

@@ -43,6 +43,12 @@ typedef enum {
     STATE_END
 } ui_state_t;
 
+typedef enum {
+    PB_NO_PB_MOVE = 0,
+    PB_NO_PB_HIT,
+    PB_HIT
+} pb_result_t;
+
 extern bool XBoardMode;
 extern ui_state_t State;
 extern bool ForceMode;

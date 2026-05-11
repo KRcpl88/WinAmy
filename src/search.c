@@ -33,6 +33,8 @@
  * search.c - tree searching routines
  */
 
+#include "amy.h"
+
 #include "search.h"
 #include "bookup.h"
 #include "commands.h"
@@ -1251,7 +1253,11 @@ static void *IterateInt(void *x) {
     bool pv_valid = false;
 
     if (!sd->master) {
+#ifdef _WIN32
+        Sleep((50 + 100 * Random()) / 1000);
+#else
         usleep(50 + 100 * Random());
+#endif
     }
     p = sd->position;
 

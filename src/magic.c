@@ -33,6 +33,8 @@
  * magic.c - precalculates the tables needed for magic bitboards.
  */
 
+#include "amy.h"
+
 #include "assert.h"
 #include "inline.h"
 
@@ -221,7 +223,7 @@ static uint64_t bishop_attack_mask(int sq, uint64_t blockers) {
 
 static BitBoard blockers_from_index(int index, BitBoard mask) {
     uint64_t blockers = 0;
-    int bits = __builtin_popcountll(mask);
+    int bits = CountBits(mask);
     for (int i = 0; i < bits; i++) {
         int bit = poplsb(&mask);
         if (index & (1 << i)) {

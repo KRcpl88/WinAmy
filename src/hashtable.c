@@ -33,9 +33,10 @@
  * hashtable.c - hashtable management routines
  */
 
+#include "amy.h"
+
 #include <string.h>
 
-#include "amy.h"
 #include "hashtable.h"
 #include "random.h"
 #include "search.h"
