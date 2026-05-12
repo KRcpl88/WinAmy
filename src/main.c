@@ -2,7 +2,7 @@
 
     Amy - a chess playing program
 
-    Copyright (c) 2002-2025, Thorsten Greiner
+    Copyright (c) 2002-2026, Thorsten Greiner
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -45,12 +45,13 @@
 #include "recog.h"
 #include "search.h"
 #include "state_machine.h"
+#include "test_blunder.h"
 #include "test_dbase.h"
 #include "test_yaml.h"
 #include "utils.h"
 
 static char CopyrightNotice[] =
-    "    Amy version " VERSION ", Copyright (c) 2002-2025, Thorsten Greiner\n"
+    "    Amy version " VERSION ", Copyright (c) 2002-2026, Thorsten Greiner\n"
     "    Amy comes with ABSOLUTELY NO WARRANTY; for details type 'warranty'.\n"
     "    This is free software, and you are welcome to redistribute it\n"
     "    under certain conditions; type 'distribution' for details.\n\n"
@@ -62,6 +63,7 @@ static char EGTBPath[1024] = "TB";
 static char *ConfigFileName = NULL;
 
 static void RunAllTests(void) {
+    test_all_blunder();
     test_all_yaml();
     test_all_dbase();
 }

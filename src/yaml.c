@@ -2,7 +2,7 @@
 
     Amy - a chess playing program
 
-    Copyright (c) 2002-2025, Thorsten Greiner
+    Copyright (c) 2002-2026, Thorsten Greiner
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "safe_malloc.h"
 #include "tree.h"
 #include "yaml.h"
 
@@ -52,13 +53,6 @@ struct TokenizerState {
 void free_yaml_node(struct YamlNode *);
 void free_list_node(struct YamlListNode *);
 void free_tree_node(tree_node_t *tree);
-
-void abort_if_allocation_failed(void *x) {
-    if (!x) {
-        perror("Cannot allocate buffer");
-        exit(1);
-    }
-}
 
 static bool is_word_char(char c) { return isalnum(c) || c == '_' || c == '-'; }
 
@@ -85,8 +79,7 @@ struct YamlToken parse_word(struct TokenizerState *state) {
 
     length -= trailing_blanks;
 
-    char *buffer = malloc(length + 1);
-    abort_if_allocation_failed(buffer);
+    char *buffer = safe_malloc(length + 1);
 
     memcpy(buffer, begin, length);
     buffer[length] = '\0';
@@ -337,8 +330,7 @@ struct YamlNode *parse_yaml(char *text) {
 
 struct YamlNode *get_node(struct YamlNode *node, char *path) {
     // Make a copy of path because strtok will clobber it
-    char *path_buffer = malloc(strlen(path) + 1);
-    abort_if_allocation_failed(path_buffer);
+    char *path_buffer = safe_malloc(strlen(path) + 1);
     memcpy(path_buffer, path, strlen(path) + 1);
 
     char *x = path_buffer;
@@ -517,7 +509,7 @@ struct IntArrayLookupResult get_as_int_array(struct YamlNode *node, char *path,
                 .result_code = FORMAT_ERROR, .elements_read = 0};
             return lookup_result;
         }
-        buffer[index] = value;
+        buffer[index] = (int)value;
         list_node = list_node->next;
     }
 

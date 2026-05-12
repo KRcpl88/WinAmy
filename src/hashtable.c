@@ -2,7 +2,7 @@
 
     Amy - a chess playing program
 
-    Copyright (c) 2002-2025, Thorsten Greiner
+    Copyright (c) 2002-2026, Thorsten Greiner
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -33,12 +33,16 @@
  * hashtable.c - hashtable management routines
  */
 
+
 #include "amy.h"
+
+#include <stddef.h>
 
 #include <string.h>
 
 #include "hashtable.h"
 #include "random.h"
+#include "safe_malloc.h"
 #include "search.h"
 #include "utils.h"
 
@@ -312,7 +316,7 @@ LookupResult ProbeHT(hash_t key, int *score, int depth, move_t *bestm,
     }
 #if MP
     else {
-        h.ht_Depth = depth;
+        h.ht_Depth = (short)depth;
         h.ht_Flags = HT_NCPU_INCREMENT;
         h.ht_Signature = (int)key;
         PutHTEntryBestEffort(key, h, depth);
@@ -415,12 +419,12 @@ void StoreHT(hash_t key, int best, int alpha, int beta, int bestm, int depth,
 #endif /* MP */
 
     entry.ht_Move = bestm;
-    entry.ht_Depth = depth;
+    entry.ht_Depth = (short)depth;
     entry.ht_Score = reduced;
 #if MP
-    entry.ht_Flags |= HTGeneration;
+    entry.ht_Flags |= (short)HTGeneration;
 #else
-    entry.ht_Flags = HTGeneration;
+    entry.ht_Flags = (short)HTGeneration;
 #endif /* MP */
     if (best <= alpha)
         entry.ht_Flags |= HT_UBOUND;
@@ -541,7 +545,7 @@ void AllocateHT(void) {
     HT_Size = 1 << HT_Bits;
     HT_Mask = HT_Size - 1;
 
-    TranspositionTable = calloc(HT_Size, sizeof(struct HTEntry));
+    TranspositionTable = safe_calloc(HT_Size, sizeof(struct HTEntry));
 
     /* Thread-local hash table - only calculate sizes and bits here...*/
     L_HT_Size = 1 << L_HT_Bits;
@@ -550,12 +554,12 @@ void AllocateHT(void) {
     PT_Size = 1 << PT_Bits;
     PT_Mask = PT_Size - 1;
 
-    PawnTable = calloc(PT_Size, sizeof(struct PTEntry));
+    PawnTable = safe_calloc(PT_Size, sizeof(struct PTEntry));
 
     ST_Size = 1 << ST_Bits;
     ST_Mask = ST_Size - 1;
 
-    ScoreTable = calloc(ST_Size, sizeof(struct STEntry));
+    ScoreTable = safe_calloc(ST_Size, sizeof(struct STEntry));
 
     Print(0, "Hashtable sizes: %d k, %d k, %d k (%d, %d, %d bits)\n",
           ((1 << HT_Bits) * sizeof(struct HTEntry)) / 1024,
@@ -593,7 +597,7 @@ void ShowHashStatistics(void) {
 }
 
 void GuessHTSizes(char *size) {
-    int last = strlen(size) - 1;
+    size_t last = strlen(size) - 1;
     int64_t total_size;
     int64_t tmp;
 

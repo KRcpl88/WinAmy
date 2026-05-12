@@ -2,7 +2,7 @@
 
     Amy - a chess playing program
 
-    Copyright (c) 2002-2025, Thorsten Greiner
+    Copyright (c) 2002-2026, Thorsten Greiner
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -46,8 +46,10 @@ struct PGNHeader {
     char white[64];
     char black[64];
     char result[8];
+    char fen[128];
     int white_elo;
     int black_elo;
+    bool is_setup;
 };
 
 extern char OpponentName[OPP_NAME_LENGTH];
@@ -55,6 +57,8 @@ extern char OpponentName[OPP_NAME_LENGTH];
 void SaveGame(struct Position *, char *);
 void LoadGame(struct Position *, char *);
 int scanHeader(FILE *, struct PGNHeader *);
-int scanMove(FILE *fin, char *nextMove);
+int scanMove(FILE *, char *);
+void get_and_reset_comment(char *, unsigned int);
+void print_header(FILE *, struct PGNHeader *);
 
 #endif

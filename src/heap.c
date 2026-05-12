@@ -2,7 +2,7 @@
 
     Amy - a chess playing program
 
-    Copyright (c) 2002-2025, Thorsten Greiner
+    Copyright (c) 2002-2026, Thorsten Greiner
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -29,35 +29,25 @@
 
 */
 
+
 #include "amy.h"
 
 #include "heap.h"
+#include "safe_malloc.h"
 
 static const int DATA_SIZE = 1024;
 static const int SECTION_SIZE = 32;
 
 heap_t allocate_heap(void) {
-    heap_t heap = (heap_t)malloc(sizeof(struct heap));
-    if (heap == NULL) {
-        perror("Cannot allocate heap:");
-        exit(1);
-    }
+    heap_t heap = (heap_t)safe_malloc(sizeof(struct heap));
 
-    move_t *data = (move_t *)malloc(DATA_SIZE * sizeof(move_t));
-    if (data == NULL) {
-        perror("Cannot allocate heap:");
-        exit(1);
-    }
+    move_t *data = (move_t *)safe_malloc(DATA_SIZE * sizeof(move_t));
 
     heap->data = data;
     heap->capacity = DATA_SIZE;
 
     heap_section_t sections =
-        (heap_section_t)malloc(SECTION_SIZE * sizeof(struct heap_section));
-    if (sections == NULL) {
-        perror("Cannot allocate heap:");
-        exit(1);
-    }
+        (heap_section_t)safe_malloc(SECTION_SIZE * sizeof(struct heap_section));
 
     heap->sections_start = sections;
     heap->sections_end = sections + SECTION_SIZE;

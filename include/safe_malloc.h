@@ -29,10 +29,37 @@
 
 */
 
-#ifndef EVALUATION_CONFIG_H
-#define EVALUATION_CONFIG_H
+#ifndef SAFE_MALLOC_H
+#define SAFE_MALLOC_H
 
-void LoadEvaluationConfig(char *);
-void SaveEvaluationConfig(char *);
+#include <stdio.h>
+#include <stdlib.h>
 
-#endif /* EVALUATION_H */
+static void *safe_malloc(size_t size) {
+    void *ptr = malloc(size);
+    if (ptr == NULL) {
+        perror(NULL);
+        exit(1);
+    }
+    return ptr;
+}
+
+static void *safe_calloc(size_t count, size_t size) {
+    void *ptr = calloc(count, size);
+    if (ptr == NULL) {
+        perror(NULL);
+        exit(1);
+    }
+    return ptr;
+}
+
+static void *safe_realloc(void *old_ptr, size_t size) {
+    void *ptr = realloc(old_ptr, size);
+    if (ptr == NULL) {
+        perror(NULL);
+        exit(1);
+    }
+    return ptr;
+}
+
+#endif

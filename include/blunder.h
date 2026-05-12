@@ -29,10 +29,13 @@
 
 */
 
-#ifndef EVALUATION_CONFIG_H
-#define EVALUATION_CONFIG_H
+#ifndef BLUNDER_H
+#define BLUNDER_H
 
-void LoadEvaluationConfig(char *);
-void SaveEvaluationConfig(char *);
+#include "dbase.h"
+#include "types.h"
 
-#endif /* EVALUATION_H */
+move_t get_best_move_from_comment(char *, struct Position *, char *);
+void BlunderCheck(char *);
+
+#endif

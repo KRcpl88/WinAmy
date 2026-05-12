@@ -2,7 +2,7 @@
 
     Amy - a chess playing program
 
-    Copyright (c) 2002-2025, Thorsten Greiner
+    Copyright (c) 2002-2026, Thorsten Greiner
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -36,9 +36,8 @@
 #include "bitboard.h"
 #include "config.h"
 
-#define USE_8BIT 1
-
 #if !HAVE___BUILTIN_CTZLL
+
 #if !HAVE_FFSLL
 int ffsll(long long num) {
     //BUGBUG this coudl be significantly optimized with a byte lookup table
@@ -56,6 +55,10 @@ int ffsll(long long num) {
 }
 
 #endif
+
+
+#include <strings.h>
+
 int FindSetBit(BitBoard b) {
     return 64 - ffsll(b);
 }

@@ -2,7 +2,7 @@
 
     Amy - a chess playing program
 
-    Copyright (c) 2002-2025, Thorsten Greiner
+    Copyright (c) 2002-2026, Thorsten Greiner
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "safe_malloc.h"
 #include "tree.h"
 
 /** Magic constant to identify trees written to disk. */
@@ -48,24 +49,12 @@ static const char *MAGIC = "ATRE";
  */
 static tree_node_t *allocate_node(void *key_data, size_t key_len,
                                   void *value_data, size_t value_len) {
-    tree_node_t *node = malloc(sizeof(tree_node_t));
-    if (node == NULL) {
-        perror("Failed to allocate node");
-        exit(1);
-    }
+    tree_node_t *node = safe_malloc(sizeof(tree_node_t));
 
-    node->key_data = malloc(key_len);
-    if (node->key_data == NULL) {
-        perror("Failed to allocate key_data");
-        exit(1);
-    }
+    node->key_data = safe_malloc(key_len);
     node->key_len = key_len;
 
-    node->value_data = malloc(value_len);
-    if (node->value_data == NULL) {
-        perror("Failed to allocate value_data");
-        exit(1);
-    }
+    node->value_data = safe_malloc(value_len);
     node->value_len = value_len;
 
     memcpy(node->key_data, key_data, key_len);
@@ -104,7 +93,7 @@ static int cmp_keys(char *key1, size_t len1, char *key2, size_t len2) {
         return result;
     }
 
-    return len1 - len2;
+    return (int)(len1 - len2);
 }
 
 /**
@@ -225,7 +214,7 @@ tree_node_t *add_node(tree_node_t *node, void *key_data, size_t key_len,
     int comparison = cmp_keys(key_data, key_len, node->key_data, node->key_len);
 
     if (comparison == 0) {
-        node->value_data = realloc(node->value_data, value_len);
+        node->value_data = safe_realloc(node->value_data, value_len);
         if (node->value_data == NULL) {
             perror("Failed to allocate value_data");
             exit(1);
@@ -260,10 +249,7 @@ static void *lookup_value_internal(tree_node_t *node, char *key_data,
         if (value_len != NULL) {
             *value_len = node->value_len;
         }
-        char *buffer = malloc(node->value_len);
-        if (buffer == NULL) {
-            return NULL;
-        }
+        char *buffer = safe_malloc(node->value_len);
         memcpy(buffer, node->value_data, node->value_len);
         return buffer;
     } else if (comparison < 0) {
@@ -325,7 +311,7 @@ static void save_tree_recursive(tree_node_t *node, FILE *fout) {
  * Save the tree to a file.
  */
 void save_tree(tree_node_t *node, FILE *fout) {
-    int records_written = fwrite(MAGIC, 4, 1, fout);
+    unsigned long records_written = fwrite(MAGIC, 4, 1, fout);
     if (records_written != 1)
         return;
     save_tree_recursive(node, fout);
@@ -356,16 +342,16 @@ static tree_node_t *load_tree_internal(FILE *fin) {
     tree_node_t *node = NULL;
     size_t key_len;
     size_t value_len;
-    char *key_data = malloc(8);
-    char *value_data = malloc(256);
+    char *key_data = safe_malloc(8);
+    char *value_data = safe_malloc(256);
 
     for (;;) {
         key_len = read_size(fin);
         if (key_len == 0)
             break;
 
-        key_data = realloc(key_data, key_len);
-        int amount_read = fread(key_data, key_len, 1, fin);
+        key_data = safe_realloc(key_data, key_len);
+        unsigned long amount_read = fread(key_data, key_len, 1, fin);
         if (amount_read != 1)
             break;
 
@@ -373,7 +359,7 @@ static tree_node_t *load_tree_internal(FILE *fin) {
         if (value_len == 0)
             break;
 
-        value_data = realloc(value_data, value_len);
+        value_data = safe_realloc(value_data, value_len);
         amount_read = fread(value_data, value_len, 1, fin);
         if (amount_read != 1)
             break;
@@ -392,7 +378,7 @@ static tree_node_t *load_tree_internal(FILE *fin) {
  */
 tree_node_t *load_tree(FILE *fin) {
     char buffer[4];
-    int records_read = fread(buffer, 4, 1, fin);
+    unsigned long records_read = fread(buffer, 4, 1, fin);
     if (records_read != 1)
         return NULL;
 

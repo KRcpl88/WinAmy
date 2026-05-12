@@ -2,7 +2,7 @@
 
     Amy - a chess playing program
 
-    Copyright (c) 2002-2025, Thorsten Greiner
+    Copyright (c) 2002-2026, Thorsten Greiner
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -50,12 +50,14 @@
 #include "probe.h"
 #include "random.h"
 #include "recog.h"
+#include "safe_malloc.h"
 #include "search_io.h"
 #include "state_machine.h"
 #include "swap.h"
 #include "time_ctl.h"
 #include "utils.h"
 
+#include <stdint.h>
 #include <string.h>
 
 #if HAVE_LIBPTHREAD
@@ -75,6 +77,8 @@
 #define NORMAL "\x1B[0m"
 
 #define DEFERRED_DEPTH_OFFSET 32768
+
+#define ALTERNATE_DELTA 1500
 
 /*
  * We use fractional ply extensions.
@@ -126,10 +130,10 @@ static const int MateDepth = 3;
 int MaxDepth;
 
 unsigned long RCExt, ChkExt, DiscExt, DblExt, SingExt, PPExt, ZZExt;
-unsigned int HardLimit, SoftLimit, SoftLimit2;
-unsigned int StartTime, WallTimeStart;
-unsigned int CurTime;
-unsigned int FHTime;
+unsigned long HardLimit, SoftLimit, SoftLimit2;
+unsigned long StartTime, WallTimeStart;
+unsigned long CurTime;
+unsigned long FHTime;
 bool AbortSearch;
 bool NeedTime = false;
 int PrintOK;
@@ -192,7 +196,7 @@ static int negascout(struct SearchData *, int, int, int, int);
  */
 static bool TerminateSearch(struct SearchData *sd) {
     if ((sd->nodes_cnt + sd->qnodes_cnt) > sd->check_nodes_cnt) {
-        unsigned int now = GetTime();
+        unsigned long now = GetTime();
 
         sd->check_nodes_cnt = sd->nodes_cnt + sd->qnodes_cnt + NodesPerCheck;
         if (AbortSearch)
@@ -559,6 +563,7 @@ static int quies(struct SearchData *sd, int alpha, int beta, int depth) {
 EXIT:
 
     LeaveNode(sd);
+
     return best;
 }
 
@@ -587,7 +592,6 @@ static int negascout(struct SearchData *sd, int alpha, int beta,
     move_t bestm = M_NONE;
     int tmp;
     int talpha;
-    int incheck;
     int lmove;
     move_t move;
     int extend = 0;
@@ -628,7 +632,7 @@ static int negascout(struct SearchData *sd, int alpha, int beta,
      * check extension
      */
 
-    incheck = InCheck(p, p->turn);
+    const bool incheck = InCheck(p, p->turn);
     if (incheck && p->material[p->turn] > 0) {
         extend += CheckExtend(p);
         ChkExt++;
@@ -1243,7 +1247,6 @@ static void ResortMovesList(int cnt, move_t *mvs, unsigned long *nodes) {
  */
 
 static void *IterateInt(void *x) {
-    int best;
     unsigned long nodes[256];
     int last = 0;
     double elapsed;
@@ -1253,20 +1256,22 @@ static void *IterateInt(void *x) {
     bool pv_valid = false;
 
     if (!sd->master) {
+
 #ifdef _WIN32
         Sleep((50 + 100 * Random()) / 1000);
 #else
         usleep(50 + 100 * Random());
 #endif
+
     }
     p = sd->position;
 
     InitSearch(sd);
-    sd->nrootmoves = LegalMoves(p, sd->heap);
+    sd->nrootmoves = (uint16_t)LegalMoves(p, sd->heap);
 
     move_t *mvs = sd->heap->data + sd->heap->current_section->start;
 
-    best = p->material[p->turn] - p->material[OPP(p->turn)];
+    sd->best_score = p->material[p->turn] - p->material[OPP(p->turn)];
 
     if (!(mvs[0] & M_TACTICAL))
         PutKiller(sd, mvs[0]);
@@ -1274,8 +1279,8 @@ static void *IterateInt(void *x) {
     MaxDepth = MAX_TREE_SIZE - 1;
 
     for (sd->depth = 1; sd->depth < MaxSearchDepth; sd->depth++) {
-        int alpha = best - PVWindow;
-        int beta = best + PVWindow;
+        int alpha = sd->best_score - PVWindow;
+        int beta = sd->best_score + PVWindow;
         bool is_pv = true;
         bool pv_stable = true;
 
@@ -1283,6 +1288,7 @@ static void *IterateInt(void *x) {
             int tmp;
             int next_depth = (sd->depth - 2) * OnePly;
             move_t move = mvs[sd->movenum];
+            bool is_alternate = !is_pv && move == sd->alternate_move;
 
             nodes[sd->movenum] = sd->nodes_cnt;
 
@@ -1303,13 +1309,18 @@ static void *IterateInt(void *x) {
                 next_depth += ExtendInCheck;
 
             if (next_depth >= 0) {
+                int effective_alpha =
+                    is_alternate ? (alpha - ALTERNATE_DELTA) : alpha;
 #if MP
-                tmp = -negascout(sd, -beta, -alpha, next_depth,
+                tmp = -negascout(sd, -beta, -effective_alpha, next_depth,
                                  is_pv ? PVNode : CutNode, 0);
 #else
-                tmp = -negascout(sd, -beta, -alpha, next_depth,
+                tmp = -negascout(sd, -beta, -effective_alpha, next_depth,
                                  is_pv ? PVNode : CutNode);
 #endif
+                if (is_alternate) {
+                    sd->alternate_score = tmp;
+                }
             } else {
                 tmp = -quies(sd, -beta, -alpha, 0);
             }
@@ -1383,7 +1394,7 @@ static void *IterateInt(void *x) {
                 pv_stable = false;
 
                 if (sd->movenum != 0) {
-                    int tn = nodes[sd->movenum];
+                    unsigned long tn = nodes[sd->movenum];
                     int j;
 
                     for (j = sd->movenum; j > 0; j--) {
@@ -1454,30 +1465,31 @@ static void *IterateInt(void *x) {
                 goto final;
 
             if (is_pv) {
-                best = tmp;
+                sd->best_score = tmp;
 
                 if (sd->master) {
                     char score_as_text[16];
                     AnalyzeHT(p, mvs[0]);
                     pv_valid = true;
 
-                    snprintf(
-                        AnalysisLine, sizeof(AnalysisLine), "%2d: (%7s) %s",
-                        sd->depth,
-                        FormatScore(best, score_as_text, sizeof(score_as_text)),
-                        BestLine);
+                    snprintf(AnalysisLine, sizeof(AnalysisLine),
+                             "%2d: (%7s) %s", sd->depth,
+                             FormatScore(sd->best_score, score_as_text,
+                                         sizeof(score_as_text)),
+                             BestLine);
 
                     if (PrintOK) {
                         SearchOutput(sd->depth, CurTime - StartTime,
-                                     (p->turn) ? -best : best, BestLine,
-                                     sd->nodes_cnt + sd->qnodes_cnt);
+                                     (p->turn) ? -sd->best_score
+                                               : sd->best_score,
+                                     BestLine, sd->nodes_cnt + sd->qnodes_cnt);
 
                         any_pv_printed = true;
                     }
                 }
 
-                alpha = best;
-                beta = best + 1;
+                alpha = sd->best_score;
+                beta = sd->best_score + 1;
                 is_pv = false;
             }
 
@@ -1493,25 +1505,27 @@ static void *IterateInt(void *x) {
         }
 
         if (sd->master && (PrintOK || (sd->depth > MateDepth &&
-                                       (best < -CMLIMIT || best > CMLIMIT)))) {
+                                       (sd->best_score < -CMLIMIT ||
+                                        sd->best_score > CMLIMIT)))) {
             SearchOutput(sd->depth, CurTime - StartTime,
-                         (p->turn) ? -best : best, BestLine,
+                         (p->turn) ? -sd->best_score : sd->best_score, BestLine,
                          sd->nodes_cnt + sd->qnodes_cnt);
 
             any_pv_printed = true;
         }
 
-        if (best < -CMLIMIT || best > CMLIMIT) {
-            if (last > CMLIMIT && best >= last && sd->depth > MateDepth) {
+        if (sd->best_score < -CMLIMIT || sd->best_score > CMLIMIT) {
+            if (last > CMLIMIT && sd->best_score >= last &&
+                sd->depth > MateDepth) {
                 if (SearchMode == Searching)
                     break;
                 else
                     DoneAtRoot = true;
             }
-            if (SearchMode == Searching && last < CMLIMIT && best <= last &&
-                sd->depth > MateDepth)
+            if (SearchMode == Searching && last < CMLIMIT &&
+                sd->best_score <= last && sd->depth > MateDepth)
                 break;
-            last = best;
+            last = sd->best_score;
         }
 
         NeedTime = false;
@@ -1578,7 +1592,7 @@ final:
         if (pv_valid && !any_pv_printed) {
             // Make sure there is a PV printed
             SearchOutput(sd->depth, CurTime - StartTime,
-                         (p->turn) ? -best : best, BestLine,
+                         (p->turn) ? -sd->best_score : sd->best_score, BestLine,
                          sd->nodes_cnt + sd->qnodes_cnt);
         }
 
@@ -1674,13 +1688,7 @@ static void StartHelpers(struct Position *p) {
     if (NumberOfCPUs < 2)
         return;
 
-    tids = calloc(NumberOfCPUs - 1, sizeof(pthread_t));
-
-    if (tids == NULL) {
-        Print(0, "Cannot allocate memory for helpers.\n");
-        Print(0, "Will try to search sequential.\n");
-        return;
-    }
+    tids = safe_calloc(NumberOfCPUs - 1, sizeof(pthread_t));
 
     pthread_attr_init(&attr);
     pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
@@ -1702,8 +1710,15 @@ static void StartHelpers(struct Position *p) {
 
 /**
  * The basic root iteration procedure.
+ *
+ * Parameters:
+ *  p: the position to search
+ *  score_ptr: pointer to return the root score in
+ *  alternate_move: an alternate move to search
+ *  alternate_score_ptr: a pointer to return the alternate score in
  */
-int Iterate(struct Position *p) {
+int Iterate(struct Position *p, int *score_ptr, move_t alternate_move,
+            int *alternate_score_ptr) {
     float soft, hard;
     int cnt;
     struct SearchData *sd;
@@ -1758,9 +1773,18 @@ int Iterate(struct Position *p) {
 
     sd = CreateSearchData(p);
     sd->master = true;
+    sd->alternate_move = alternate_move;
     IterateInt(sd);
 
     move_t best_move = sd->best_move;
+    if (score_ptr != NULL) {
+        *score_ptr = sd->best_score;
+    }
+
+    if (alternate_move != M_NONE && alternate_score_ptr != NULL) {
+        *alternate_score_ptr = sd->alternate_score;
+    }
+
     FreeSearchData(sd);
 
 #if MP
@@ -1795,7 +1819,7 @@ void SearchRoot(struct Position *p) {
 
     if (move == M_NONE) {
         q = ClonePosition(p);
-        move = Iterate(q);
+        move = Iterate(q, NULL, M_NONE, NULL);
         FreePosition(q);
     }
 
@@ -1816,6 +1840,25 @@ void SearchRoot(struct Position *p) {
 }
 
 /**
+ * Do a quiescence search only. Returns the score.
+ */
+int QuiescenceSearch(struct Position *p) {
+    struct SearchData *sd;
+
+    InitEvaluation(p);
+    MaxDepth = MAX_TREE_SIZE - 1;
+
+    sd = CreateSearchData(p);
+    sd->master = true;
+    InitSearch(sd);
+
+    int score = quies(sd, -INF, INF, 0);
+    FreeSearchData(sd);
+
+    return score;
+}
+
+/**
  * Implements the permanent brain.
  */
 pb_result_t PermanentBrain(struct Position *p) {
@@ -1827,7 +1870,7 @@ pb_result_t PermanentBrain(struct Position *p) {
         PBAltMove = M_NONE;
 
         Print(2, "Puzzling over a move to ponder on...\n");
-        PBMove = Iterate(q);
+        PBMove = Iterate(q, NULL, M_NONE, NULL);
         FreePosition(q);
 
         if (SearchMode == Interrupted) {
@@ -1875,7 +1918,7 @@ pb_result_t PermanentBrain(struct Position *p) {
         SearchMode = Pondering;
 
         if (!inbook) {
-            move = Iterate(q);
+            move = Iterate(q, NULL, M_NONE, NULL);
         }
 
         FreePosition(q);
@@ -1928,6 +1971,15 @@ void AnalysisMode(struct Position *p) {
     SearchMode = Analyzing;
 
     q = ClonePosition(p);
-    Iterate(q);
+    Iterate(q, NULL, M_NONE, NULL);
     FreePosition(q);
+}
+
+/**
+ * Set the maximum depth for the root search.
+ */
+void setMaxSearchDepth(int max_search_depth) {
+    if (max_search_depth > 0 && max_search_depth < (MAX_TREE_SIZE - 1)) {
+        MaxSearchDepth = max_search_depth;
+    }
 }

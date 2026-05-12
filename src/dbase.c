@@ -2,7 +2,7 @@
 
     Amy - a chess playing program
 
-    Copyright (c) 2002-2025, Thorsten Greiner
+    Copyright (c) 2002-2026, Thorsten Greiner
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -33,8 +33,11 @@
  * dbase.c - global database manipulation routines
  */
 
+
 #include "amy.h"
 
+#include <stdint.h>
+  
 #include <string.h>
 
 #include "dbase.h"
@@ -45,7 +48,9 @@
 #include "magic.h"
 #include "mates.h"
 #include "recog.h"
+#include "safe_malloc.h"
 #include "swap.h"
+#include "types.h"
 #include "utils.h"
 
 #define INITIAL_GAME_LOG_SIZE 40 /* Initial size of game history */
@@ -306,10 +311,10 @@ static inline bool is_sliding(Piece tp) { return tp >= Bishop && tp <= Queen; }
  */
 
 static void DoCastle(struct Position *p, move_t move) {
-    int from = M_FROM(move);
-    int to = M_TO(move);
-    int or = (move & M_SCASTLE) ? from + 3 : from - 4;
-    int nr = (move & M_SCASTLE) ? from + 1 : from - 1;
+    int8_t from = M_FROM(move);
+    int8_t to = M_TO(move);
+    int8_t or = (move & M_SCASTLE) ? from + 3 : from - 4;
+    int8_t nr = (move & M_SCASTLE) ? from + 1 : from - 1;
 
     /* king looses its attacks */
     AtkClr(p, from);
@@ -362,10 +367,10 @@ static void DoCastle(struct Position *p, move_t move) {
  */
 
 static void UndoCastle(struct Position *p, move_t move) {
-    int from = M_FROM(move);
-    int to = M_TO(move);
-    int or = (move & M_SCASTLE) ? from + 3 : from - 4;
-    int nr = (move & M_SCASTLE) ? from + 1 : from - 1;
+    int8_t from = M_FROM(move);
+    int8_t to = M_TO(move);
+    int8_t or = (move & M_SCASTLE) ? from + 3 : from - 4;
+    int8_t nr = (move & M_SCASTLE) ? from + 1 : from - 1;
 
     /* king looses its attacks */
     AtkClr(p, to);
@@ -412,9 +417,9 @@ static void UndoCastle(struct Position *p, move_t move) {
  */
 
 void DoMove(struct Position *p, move_t move) {
-    int from = M_FROM(move);
-    int to = M_TO(move);
-    int tp = TYPE(p->piece[from]);
+    int8_t from = M_FROM(move);
+    int8_t to = M_TO(move);
+    int8_t tp = TYPE(p->piece[from]);
 
     /* save EnPassant and Castling */
     p->actLog->gl_EnPassant = p->enPassant;
@@ -572,7 +577,7 @@ void DoMove(struct Position *p, move_t move) {
 
     p->enPassant = 0;
     if (move & M_PAWND) {
-        int tmpPassant = to ^ 8;
+        int8_t tmpPassant = to ^ 8;
         if (p->atkFr[tmpPassant] & p->mask[OPP(p->turn)][Pawn]) {
             p->enPassant = tmpPassant;
         }
@@ -610,9 +615,9 @@ void DoMove(struct Position *p, move_t move) {
 }
 
 void UndoMove(struct Position *p, move_t move) {
-    int from = M_FROM(move);
-    int to = M_TO(move);
-    int tp = TYPE(p->piece[to]);
+    int8_t from = M_FROM(move);
+    int8_t to = M_TO(move);
+    int8_t tp = TYPE(p->piece[to]);
 
     /* Swap p->turns */
     p->turn = OPP(p->turn);
@@ -655,7 +660,7 @@ void UndoMove(struct Position *p, move_t move) {
         }
 
         if (move & M_CAPTURE) {
-            int sp = p->actLog->gl_Piece;
+            int8_t sp = p->actLog->gl_Piece;
 
             /* piece gains its attacks */
             AtkSet(p, TYPE(sp), OPP(p->turn), to);
@@ -861,8 +866,8 @@ void RecalcAttacks(struct Position *p) {
         AtkSet(p, -p->piece[i], Black, i);
     }
 
-    p->kingSq[White] = FindSetBit(p->mask[White][King]);
-    p->kingSq[Black] = FindSetBit(p->mask[Black][King]);
+    p->kingSq[White] = (int8_t)FindSetBit(p->mask[White][King]);
+    p->kingSq[Black] = (int8_t)FindSetBit(p->mask[Black][King]);
 
     p->hkey ^= HashKeysCastle[p->castle];
     if (p->turn == Black)
@@ -1366,9 +1371,9 @@ int Repeated(struct Position *p, int mode) {
 char *SAN(struct Position *p, move_t move, char *buffer) {
     char *x = buffer;
 
-    int to = M_TO(move);
-    int fr = M_FROM(move);
-    int tp = TYPE(p->piece[fr]);
+    int8_t to = M_TO(move);
+    int8_t fr = M_FROM(move);
+    int8_t tp = TYPE(p->piece[fr]);
 
     if (tp == Pawn) {
         if (move & (M_CAPTURE | M_ENPASSANT)) {
@@ -1472,8 +1477,8 @@ char *ICS_SAN(move_t move) {
     static char buffer[16];
     char *x = buffer;
 
-    int to = M_TO(move);
-    int fr = M_FROM(move);
+    int8_t to = M_TO(move);
+    int8_t fr = M_FROM(move);
 
     *(x++) = 'a' + (fr & 7);
     *(x++) = '1' + (fr >> 3);
@@ -1494,12 +1499,9 @@ char *ICS_SAN(move_t move) {
  */
 
 move_t parse_gsan_internal(struct Position *p, char *san, heap_t heap) {
-    int fr, to;
-    int mask;
-
     if (!strncmp(san, "O-O-O", 5) || !strncmp(san, "o-o-o", 5) ||
         !strncmp(san, "0-0-0", 5)) {
-        int move =
+        move_t move =
             M_LCASTLE | (p->turn == White ? (c1 << 6) + e1 : (c8 << 6) + e8);
         if (MayCastle(p, move))
             return move;
@@ -1507,24 +1509,28 @@ move_t parse_gsan_internal(struct Position *p, char *san, heap_t heap) {
 
     if (!strncmp(san, "O-O", 3) || !strncmp(san, "o-o", 3) ||
         !strncmp(san, "0-0", 3)) {
-        int move =
+        move_t move =
             M_SCASTLE | (p->turn == White ? (g1 << 6) + e1 : (g8 << 6) + e8);
         if (MayCastle(p, move))
             return move;
     }
 
+    if (strlen(san) < 4) {
+        return M_NONE;
+    }
+
     (void)LegalMoves(p, heap);
 
-    fr = *san - 'a' + 8 * (*(san + 1) - '1');
-    to = *(san + 2) - 'a' + 8 * (*(san + 3) - '1');
+    int fr = *san - 'a' + 8 * (*(san + 1) - '1');
+    int to = *(san + 2) - 'a' + 8 * (*(san + 3) - '1');
 
-    mask = fr + (to << 6);
+    int mask = fr + (to << 6);
 
     for (unsigned int i = heap->current_section->start;
          i < heap->current_section->end; i++) {
         move_t move = heap->data[i];
         if ((move & 4095) == mask) {
-            if (move & M_PROMOTION_MASK) {
+            if (move & M_PROMOTION_MASK && strlen(san) >= 5) {
                 char p = *(san + 4);
                 move = move & (~M_PROMOTION_MASK);
 
@@ -2163,7 +2169,7 @@ static void ReadEPD(struct Position *p, char *x) {
      * due to the use of strtok, sorry :-)
      */
 
-    line = malloc(strlen(x) + 1);
+    line = safe_malloc(strlen(x) + 1);
     strcpy(line, x);
     x = line;
 
@@ -2296,7 +2302,7 @@ static void ReadEPD(struct Position *p, char *x) {
     /* scan enpassant status */
     p->enPassant = 0;
     if (*x != '-') {
-        p->enPassant = *x - 'a' + ((*(x + 1) - '1') << 3);
+        p->enPassant = (int8_t)(*x - 'a' + ((*(x + 1) - '1') << 3));
         x++;
     }
 
@@ -2374,11 +2380,10 @@ char *MakeEPD(struct Position *p) {
     char san_buffer[16];
 
     char *x = epdbuffer;
-    int i, j, cnt;
 
-    for (i = 7; i >= 0; i--) {
-        cnt = 0;
-        for (j = 0; j < 8; j++) {
+    for (int i = 7; i >= 0; i--) {
+        uint8_t cnt = 0;
+        for (int j = 0; j < 8; j++) {
             if (p->piece[i * 8 + j] == Neutral) {
                 cnt++;
                 if (j == 7)
@@ -2558,17 +2563,9 @@ bool IsPassed(const struct Position *p, int sq, int side) {
  */
 
 struct Position *CreatePositionFromEPD(char *epd) {
-    struct Position *p = calloc(1, sizeof(struct Position));
-    if (!p) {
-        Print(0, "Cannot allocate Position.\n");
-        exit(1);
-    }
+    struct Position *p = safe_calloc(1, sizeof(struct Position));
     p->gameLogSize = INITIAL_GAME_LOG_SIZE;
-    p->gameLog = calloc(p->gameLogSize, sizeof(struct GameLog));
-    if (!p->gameLog) {
-        Print(0, "Cannot allocate GameLog.\n");
-        exit(1);
-    }
+    p->gameLog = safe_calloc(p->gameLogSize, sizeof(struct GameLog));
     p->actLog = p->gameLog;
     ReadEPD(p, epd);
     p->actLog->gl_IrrevCount = 0;
@@ -2594,19 +2591,11 @@ struct Position *InitialPosition(void) {
 }
 
 struct Position *ClonePosition(struct Position *src) {
-    struct Position *p = calloc(1, sizeof(struct Position));
-    if (!p) {
-        Print(0, "Cannot allocated Position.\n");
-        exit(1);
-    }
+    struct Position *p = safe_calloc(1, sizeof(struct Position));
     memcpy(p, src, sizeof(struct Position));
 
     p->gameLogSize = src->gameLogSize;
-    p->gameLog = calloc(p->gameLogSize, sizeof(struct GameLog));
-    if (!p->gameLog) {
-        Print(0, "Cannot allocate GameLog.\n");
-        exit(1);
-    }
+    p->gameLog = safe_calloc(p->gameLogSize, sizeof(struct GameLog));
     memcpy(p->gameLog, src->gameLog, sizeof(struct GameLog) * p->gameLogSize);
 
     p->actLog = p->gameLog + (src->actLog - src->gameLog);
