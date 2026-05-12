@@ -19,32 +19,56 @@ Eugene Nalimov. This code is *not* under the BSD License.
 Building Amy
 ============
 
-On Un*x or Linux systems this is very simple:
+Amy is built on Windows using Visual Studio 2022 (v143 toolset) or the
+MSBuild command line.
 
-	./configure
-	make
+### Using Visual Studio
 
-should do it. Make sure to specify compiler options with good optimization, I
-typically use something like (assuming a bash or ksh shell):
+Open `WinAmy.sln` in Visual Studio 2022 and build the solution. The default
+configuration is **Debug | x64**.
 
-	export CFLAGS='-O2 -march=native'
-	export CXXFLAGS=$CFLAGS
-	./configure
-	make
+### Using MSBuild from the command line
 
-On Windows systems:
+Open a **Developer Command Prompt for VS 2022** (or run `vcvarsall.bat x64`)
+and run:
 
-Thanks to Dann Corbit (dcorbit@solutionsiq.com) Amy will now compile under
-Windows. Please do not ask me any details about how to get this going.
+Build (Debug x64):
 
+	msbuild WinAmy.sln /p:Configuration=Debug /p:Platform=x64 /m
 
-Building a parallel version
-===========================
+Build (Release x64):
 
-Amy uses ABDADA as a parallel search algorithm. Please see 'search.c' for
-reference. To enable ABDADA pass the "--enable-mt" to configure.
+	msbuild WinAmy.sln /p:Configuration=Release /p:Platform=x64 /m
 
-Note that you need 'POSIX THREADS' on your system to use the parallel search.
+Clean:
+
+	msbuild WinAmy.sln /t:Clean /p:Configuration=Debug /p:Platform=x64
+
+Rebuild (clean + build, Debug x64):
+
+	msbuild WinAmy.sln /t:Rebuild /p:Configuration=Debug /p:Platform=x64 /m
+
+The output executable is placed in `x64\Debug\WinAmy.exe` or
+`x64\Release\WinAmy.exe`.
+
+### Using VS Code
+
+The repository includes VS Code task and launch configurations in the
+`.vscode` directory. To build, press **Ctrl+Shift+B** (the default build task
+is **Build WinAmy (Debug x64)**). Additional tasks are available for Release
+builds, Clean, and Rebuild.
+
+To debug or launch the program, open the **Run and Debug** panel (Ctrl+Shift+D)
+and select one of the available configurations:
+
+- **Debug WinAmy (Debug x64)** – builds and launches the Debug binary under the debugger
+- **Debug WinAmy (Release x64)** – builds and launches the Release binary under the debugger
+- **Launch WinAmy (Debug x64)** – launches an existing Debug binary without rebuilding
+- **Launch WinAmy (Release x64)** – launches an existing Release binary without rebuilding
+
+> **Prerequisites:** The [C/C++ extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools)
+> for VS Code must be installed, and `msbuild` must be on your PATH (e.g. via
+> the VS 2022 Developer Command Prompt or by launching VS Code from one).
 
 
 Invoking Amy
@@ -52,12 +76,12 @@ Invoking Amy
 
 Just type 'Amy'. You can also specify a hashtable size:
 
-	Amy -ht 10m
+	WinAmy -ht 10m
 	
 will use 10 MB of hashtables. If you build a parallel version, you can supply
 the number of processors (or threads rather) Amy should use:
 
-	Amy -ht 10m -cpu 2
+	WinAmy -ht 10m -cpu 2
 
 Note that you can specify these options via an '.amyrc' file, too. See below.
 	
@@ -160,8 +184,6 @@ for creating a .amyrc file, Amy also looks for Amy.ini.
 
 THANKS
 ======
-
-- to Dann Corbit for porting Amy to Win32
 
 - to Allen Lake for tuning Amy's timing algorithm
 

@@ -179,10 +179,6 @@
     <ClCompile Include="utils.c" />
     <ClCompile Include="yaml.c" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="bitboard_x86.s" />
-    <None Include="Makefile.am" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -57,7 +57,7 @@ int ffsll(long long num) {
 
 #endif
 int FindSetBit(BitBoard b) {
-    return 64 - ffsll(b);
+    return ffsll(b) - 1;
 }
 #endif
 
