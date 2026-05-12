@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - '*v*'
+      - 'v*'
 
 permissions:
   contents: write
@@ -26,9 +26,7 @@ jobs:
       run: msbuild WinAmy.sln /p:Configuration=Release /p:Platform=x64 /m
 
     - name: Create source archive
-      shell: pwsh
-      run: |
-        Compress-Archive -Path .\* -DestinationPath .\WinAmy-${{ github.ref_name }}-source.zip
+      run: git archive --format=zip --output WinAmy-${{ github.ref_name }}-source.zip ${{ github.ref_name }}
 
     - name: Publish release assets
       uses: softprops/action-gh-release@v2
