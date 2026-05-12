@@ -39,6 +39,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifdef _WIN32
+#define strtok_r strtok_s
+#endif
+
 #define THRESHOLD 2000
 
 move_t get_best_move_from_comment(char *comment, struct Position *p,

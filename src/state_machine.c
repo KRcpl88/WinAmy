@@ -33,6 +33,8 @@
  * state_machine.c - the state machine which handles program states
  */
 
+#include "amy.h"
+
 #include "state_machine.h"
 #include "commands.h"
 #include "dbase.h"

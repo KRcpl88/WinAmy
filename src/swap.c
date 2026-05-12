@@ -33,6 +33,8 @@
  * swap.c - static exchange evaluation routines
  */
 
+#include "amy.h"
+
 #include "dbase.h"
 #include "init.h"
 #include "inline.h"
