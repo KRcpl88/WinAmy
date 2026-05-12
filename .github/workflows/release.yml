@@ -1,15 +1,15 @@
-name: Build MSVC Solution
+name: Release
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
 
 jobs:
-  build:
+  build-and-release:
     runs-on: windows-latest
 
     steps:
@@ -40,5 +40,15 @@ jobs:
         #define HAVE_SETBUF 1
         '@ | Set-Content -Path .\Include\config.h -Encoding Ascii
 
-    - name: Build solution
+    - name: Build solution (Release x64)
       run: msbuild WinAmy.sln /p:Configuration=Release /p:Platform=x64 /m
+
+    - name: Create source archive
+      run: git archive --format=zip --output WinAmy-${{ github.ref_name }}-source.zip ${{ github.ref_name }}
+
+    - name: Publish release assets
+      uses: softprops/action-gh-release@v2
+      with:
+        files: |
+          x64/Release/WinAmy.exe
+          WinAmy-${{ github.ref_name }}-source.zip
