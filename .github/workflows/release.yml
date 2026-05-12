@@ -1,0 +1,38 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '*v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+      with:
+        vs-version: '[17.0,18.0)'
+        msbuild-architecture: x64
+
+    - name: Build solution (Release x64)
+      run: msbuild WinAmy.sln /p:Configuration=Release /p:Platform=x64 /m
+
+    - name: Create source archive
+      shell: pwsh
+      run: |
+        Compress-Archive -Path .\* -DestinationPath .\WinAmy-${{ github.ref_name }}-source.zip
+
+    - name: Publish release assets
+      uses: softprops/action-gh-release@v2
+      with:
+        files: |
+          x64/Release/WinAmy.exe
+          WinAmy-${{ github.ref_name }}-source.zip

@@ -14,15 +14,13 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v1.0.2
-
-    - name: Setup Visual Studio
-      uses: microsoft/setup-visual-studio@v1
+      uses: microsoft/setup-msbuild@v2
       with:
-        vs-version: 2019
+        vs-version: '[17.0,18.0)'
+        msbuild-architecture: x64
 
     - name: Build solution
-      run: msbuild WinAmy.sln /p:Configuration=Release
+      run: msbuild WinAmy.sln /p:Configuration=Release /p:Platform=x64 /m
