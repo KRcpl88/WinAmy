@@ -33,6 +33,8 @@
  * learn.c - book learning routines
  */
 
+#include "amy.h"
+
 #include <sys/stat.h>
 #include <sys/types.h>
 

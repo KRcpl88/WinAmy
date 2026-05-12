@@ -33,6 +33,8 @@
  * commands.c - Command interpreter
  */
 
+#include "amy.h"
+
 #include <signal.h>
 #include <string.h>
 
@@ -93,6 +95,10 @@ static void SaveConf(char *);
 static void ShowScore(char *);
 static void TestScore(char *);
 static void SetSearchDepth(char *);
+
+// defined in search.c
+extern unsigned int FHTime;
+extern bool AbortSearch;
 
 static struct CommandEntry Commands[] = {
     {"analyze", &Analyze, false, false, "enter analyze mode (xboard)", NULL},

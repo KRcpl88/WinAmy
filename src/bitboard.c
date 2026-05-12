@@ -37,14 +37,23 @@
 #include "config.h"
 
 #if !HAVE___BUILTIN_CTZLL
-#include <strings.h>
+#if !HAVE_FFSLL
+int ffsll(long long num) {
+    if (num == 0) return 0;
 
-int FindSetBit(BitBoard b) {
-#if HAVE_FFSLL
-    return 64 - ffsll(b);
-#else
-#error "Need ffsll."
+    int position = 1;
+
+    while (!(num & 1)) {
+        num >>= 1;
+        position++;
+    }
+
+    return position;
+}
+
 #endif
+int FindSetBit(BitBoard b) {
+    return ffsll(b) - 1;
 }
 #endif
 

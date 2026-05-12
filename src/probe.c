@@ -7,6 +7,8 @@
  *
  */
 
+#include "amy.h"
+
 #include "config.h"
 #include "dbase.h"
 #include "safe_malloc.h"

@@ -33,6 +33,7 @@
 #define STATE_MACHINE_H
 
 #include "dbase.h"
+#include "search.h"
 #include <stdbool.h>
 
 typedef enum {

@@ -32,6 +32,8 @@
 #include "heap.h"
 #include "safe_malloc.h"
 
+#include "heap.h"
+
 static const int DATA_SIZE = 1024;
 static const int SECTION_SIZE = 32;
 

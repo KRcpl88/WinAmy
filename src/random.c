@@ -29,6 +29,8 @@
 
 */
 
+#include "amy.h"
+
 #include "types.h"
 #include <stddef.h>
 
