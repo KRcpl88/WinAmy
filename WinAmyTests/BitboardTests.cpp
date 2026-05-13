@@ -9,6 +9,7 @@ TEST_CLASS(BitboardTests) {
             BitBoard mask = SetMask(i);
             Assert::IsTrue(TstBit(mask, i) != 0);
             Assert::AreEqual(1, CountBits(mask));
+            Assert::AreEqual(i, FindSetBit(mask));
         }
     }
 
@@ -17,6 +18,11 @@ TEST_CLASS(BitboardTests) {
             BitBoard mask = ClrMask(i);
             Assert::IsTrue(TstBit(mask, i) == 0);
             Assert::AreEqual(63, CountBits(mask));
+            // FindSetBit should return the lowest set bit, which is 0 unless i==0
+            if (i == 0)
+                Assert::AreEqual(1, FindSetBit(mask));
+            else
+                Assert::AreEqual(0, FindSetBit(mask));
         }
     }
 
@@ -26,44 +32,66 @@ TEST_CLASS(BitboardTests) {
         Assert::IsTrue(TstBit(b, 0) != 0);
         Assert::IsTrue(TstBit(b, 1) == 0);
         Assert::IsTrue(TstBit(b, 63) == 0);
+        Assert::AreEqual(1, CountBits(b));
+        Assert::AreEqual(0, FindSetBit(b));
 
         SetBit(b, 63);
         Assert::IsTrue(TstBit(b, 0) != 0);
         Assert::IsTrue(TstBit(b, 63) != 0);
         Assert::IsTrue(TstBit(b, 32) == 0);
+        Assert::AreEqual(2, CountBits(b));
+        Assert::AreEqual(0, FindSetBit(b)); // lowest is still bit 0
+
+        SetBit(b, 32);
+        Assert::IsTrue(TstBit(b, 32) != 0);
+        Assert::AreEqual(3, CountBits(b));
+        Assert::AreEqual(0, FindSetBit(b));
 
         SetBit(b, 0); // setting already-set bit is idempotent
         Assert::IsTrue(TstBit(b, 0) != 0);
-        Assert::AreEqual(2, CountBits(b));
+        Assert::AreEqual(3, CountBits(b));
     }
 
     TEST_METHOD(ClrBitClearsSpecifiedBit) {
         BitBoard b = 0;
         for (int i = 0; i < 64; i++)
             SetBit(b, i);
+        Assert::AreEqual(64, CountBits(b));
 
         ClrBit(b, 0);
         Assert::IsTrue(TstBit(b, 0) == 0);
         Assert::IsTrue(TstBit(b, 1) != 0);
         Assert::IsTrue(TstBit(b, 63) != 0);
+        Assert::AreEqual(63, CountBits(b));
+        Assert::AreEqual(1, FindSetBit(b)); // lowest is now bit 1
 
         ClrBit(b, 63);
         Assert::IsTrue(TstBit(b, 63) == 0);
         Assert::IsTrue(TstBit(b, 32) != 0);
-        Assert::IsTrue(TstBit(b, 1) != 0);
+        Assert::AreEqual(62, CountBits(b));
+        Assert::AreEqual(1, FindSetBit(b)); // lowest still bit 1
+
+        ClrBit(b, 1);
+        Assert::AreEqual(61, CountBits(b));
+        Assert::AreEqual(2, FindSetBit(b)); // lowest is now bit 2
 
         ClrBit(b, 0); // clearing already-clear bit is idempotent
         Assert::IsTrue(TstBit(b, 0) == 0);
-        Assert::AreEqual(62, CountBits(b));
+        Assert::AreEqual(61, CountBits(b));
     }
 
     TEST_METHOD(TstBitReturnsTrueForSetBits) {
-        BitBoard b = SetMask(e4) | SetMask(a1) | SetMask(h8);
+        BitBoard b = 0;
+        SetBit(b, e4);
+        SetBit(b, a1);
+        SetBit(b, h8);
         Assert::IsTrue(TstBit(b, e4) != 0);
         Assert::IsTrue(TstBit(b, a1) != 0);
         Assert::IsTrue(TstBit(b, h8) != 0);
         Assert::IsTrue(TstBit(b, d4) == 0);
         Assert::IsTrue(TstBit(b, b2) == 0);
+        Assert::AreEqual(3, CountBits(b));
+        Assert::AreEqual((int)a1, FindSetBit(b)); // a1 is the lowest square
     }
 
     TEST_METHOD(FindSetBitReturnsLeastSignificantSetBit) {
@@ -134,6 +162,7 @@ TEST_CLASS(BitboardTests) {
         for (int i = 0; i < 64; i++) {
             SetBit(b, i);
             Assert::AreEqual(i + 1, CountBits(b));
+            Assert::AreEqual(0, FindSetBit(b)); // lowest bit is always 0
         }
     }
 
