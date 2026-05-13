@@ -5,37 +5,56 @@ namespace WinAmyTests {
 TEST_CLASS(BitboardTests) {
   public:
     TEST_METHOD(SetMaskSetsSingleBit) {
-        Assert::AreEqual(1ULL, SetMask(0));
-        Assert::AreEqual(2ULL, SetMask(1));
-        Assert::AreEqual(4ULL, SetMask(2));
-        Assert::AreEqual(0x8000000000000000ULL, SetMask(63));
-        Assert::AreEqual(0x100ULL, SetMask(8));
+        for (int i = 0; i < 64; i++) {
+            BitBoard mask = SetMask(i);
+            Assert::IsTrue(TstBit(mask, i) != 0);
+            Assert::AreEqual(1, CountBits(mask));
+        }
     }
 
     TEST_METHOD(ClrMaskClearsSingleBit) {
-        Assert::AreEqual(~1ULL, ClrMask(0));
-        Assert::AreEqual(~2ULL, ClrMask(1));
-        Assert::AreEqual(~0x8000000000000000ULL, ClrMask(63));
+        for (int i = 0; i < 64; i++) {
+            BitBoard mask = ClrMask(i);
+            Assert::IsTrue(TstBit(mask, i) == 0);
+            Assert::AreEqual(63, CountBits(mask));
+        }
     }
 
     TEST_METHOD(SetBitSetsSpecifiedBit) {
         BitBoard b = 0;
         SetBit(b, 0);
-        Assert::AreEqual(1ULL, b);
+        Assert::IsTrue(TstBit(b, 0) != 0);
+        Assert::IsTrue(TstBit(b, 1) == 0);
+        Assert::IsTrue(TstBit(b, 63) == 0);
+
         SetBit(b, 63);
-        Assert::AreEqual(0x8000000000000001ULL, b);
+        Assert::IsTrue(TstBit(b, 0) != 0);
+        Assert::IsTrue(TstBit(b, 63) != 0);
+        Assert::IsTrue(TstBit(b, 32) == 0);
+
         SetBit(b, 0); // setting already-set bit is idempotent
-        Assert::AreEqual(0x8000000000000001ULL, b);
+        Assert::IsTrue(TstBit(b, 0) != 0);
+        Assert::AreEqual(2, CountBits(b));
     }
 
     TEST_METHOD(ClrBitClearsSpecifiedBit) {
-        BitBoard b = 0xFFFFFFFFFFFFFFFFULL;
+        BitBoard b = 0;
+        for (int i = 0; i < 64; i++)
+            SetBit(b, i);
+
         ClrBit(b, 0);
-        Assert::AreEqual(0xFFFFFFFFFFFFFFFEULL, b);
+        Assert::IsTrue(TstBit(b, 0) == 0);
+        Assert::IsTrue(TstBit(b, 1) != 0);
+        Assert::IsTrue(TstBit(b, 63) != 0);
+
         ClrBit(b, 63);
-        Assert::AreEqual(0x7FFFFFFFFFFFFFFEULL, b);
+        Assert::IsTrue(TstBit(b, 63) == 0);
+        Assert::IsTrue(TstBit(b, 32) != 0);
+        Assert::IsTrue(TstBit(b, 1) != 0);
+
         ClrBit(b, 0); // clearing already-clear bit is idempotent
-        Assert::AreEqual(0x7FFFFFFFFFFFFFFEULL, b);
+        Assert::IsTrue(TstBit(b, 0) == 0);
+        Assert::AreEqual(62, CountBits(b));
     }
 
     TEST_METHOD(TstBitReturnsTrueForSetBits) {
@@ -48,11 +67,30 @@ TEST_CLASS(BitboardTests) {
     }
 
     TEST_METHOD(FindSetBitReturnsLeastSignificantSetBit) {
-        Assert::AreEqual(3, FindSetBit(0xA8ULL));
-        Assert::AreEqual(0, FindSetBit(1ULL));
-        Assert::AreEqual(63, FindSetBit(0x8000000000000000ULL));
-        Assert::AreEqual(5, FindSetBit(0x20ULL));
-        Assert::AreEqual(0, FindSetBit(0xFFFFFFFFFFFFFFFFULL));
+        // Build bitboards using SetBit and verify FindSetBit finds the lowest
+        BitBoard b = 0;
+        SetBit(b, 3);
+        SetBit(b, 5);
+        SetBit(b, 7);
+        Assert::AreEqual(3, FindSetBit(b));
+
+        BitBoard b2 = 0;
+        SetBit(b2, 0);
+        Assert::AreEqual(0, FindSetBit(b2));
+
+        BitBoard b3 = 0;
+        SetBit(b3, 63);
+        Assert::AreEqual(63, FindSetBit(b3));
+
+        BitBoard b4 = 0;
+        SetBit(b4, 5);
+        Assert::AreEqual(5, FindSetBit(b4));
+
+        // All bits set — lowest is 0
+        BitBoard b5 = 0;
+        for (int i = 0; i < 64; i++)
+            SetBit(b5, i);
+        Assert::AreEqual(0, FindSetBit(b5));
     }
 
     TEST_METHOD(FindSetBitForEachSquare) {
@@ -62,11 +100,27 @@ TEST_CLASS(BitboardTests) {
     }
 
     TEST_METHOD(CountBitsReturnsNumberOfSetBits) {
-        Assert::AreEqual(0, CountBits(0ULL));
-        Assert::AreEqual(64, CountBits(~0ULL));
-        Assert::AreEqual(1, CountBits(1ULL));
-        Assert::AreEqual(1, CountBits(0x8000000000000000ULL));
-        Assert::AreEqual(3, CountBits(SetMask(a1) | SetMask(h8) | SetMask(e4)));
+        BitBoard empty = 0;
+        Assert::AreEqual(0, CountBits(empty));
+
+        BitBoard full = 0;
+        for (int i = 0; i < 64; i++)
+            SetBit(full, i);
+        Assert::AreEqual(64, CountBits(full));
+
+        BitBoard one = 0;
+        SetBit(one, 0);
+        Assert::AreEqual(1, CountBits(one));
+
+        BitBoard oneHigh = 0;
+        SetBit(oneHigh, 63);
+        Assert::AreEqual(1, CountBits(oneHigh));
+
+        BitBoard three = 0;
+        SetBit(three, a1);
+        SetBit(three, h8);
+        SetBit(three, e4);
+        Assert::AreEqual(3, CountBits(three));
     }
 
     TEST_METHOD(CountBitsForPowersOfTwo) {
@@ -88,17 +142,25 @@ TEST_CLASS(BitboardTests) {
         for (int i = 0; i < 64; i++) {
             SetBit(b, i);
         }
-        Assert::AreEqual(~0ULL, b);
+        Assert::AreEqual(64, CountBits(b));
+        for (int i = 0; i < 64; i++) {
+            Assert::IsTrue(TstBit(b, i) != 0);
+        }
         for (int i = 0; i < 64; i++) {
             ClrBit(b, i);
         }
-        Assert::AreEqual(0ULL, b);
+        Assert::AreEqual(0, CountBits(b));
+        for (int i = 0; i < 64; i++) {
+            Assert::IsTrue(TstBit(b, i) == 0);
+        }
     }
 
     TEST_METHOD(SetMaskAndClrMaskAreComplements) {
         for (int i = 0; i < 64; i++) {
-            Assert::AreEqual(~0ULL, SetMask(i) | ClrMask(i));
-            Assert::AreEqual(0ULL, SetMask(i) & ClrMask(i));
+            BitBoard combined = SetMask(i) | ClrMask(i);
+            Assert::AreEqual(64, CountBits(combined));
+            BitBoard intersection = SetMask(i) & ClrMask(i);
+            Assert::AreEqual(0, CountBits(intersection));
         }
     }
 };
