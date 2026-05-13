@@ -2,7 +2,7 @@
 
 namespace WinAmyTests {
 
-TEST_CLASS(PositionHelperTests) {
+TEST_CLASS(PositionTests) {
   public:
     TEST_CLASS_INITIALIZE(InitializeEngine) {
         InitMoves();

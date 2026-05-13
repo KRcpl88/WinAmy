@@ -155,7 +155,7 @@
     <ClCompile Include="BitboardTests.cpp" />
     <ClCompile Include="AttackTests.cpp" />
     <ClCompile Include="MoveTests.cpp" />
-    <ClCompile Include="PositionHelperTests.cpp" />
+    <ClCompile Include="PositionTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectCapability Include="TestContainer" />
