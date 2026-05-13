@@ -25,7 +25,7 @@ class PositionGuard {
     Position *p;
 };
 
-static uint64_t naive_rook_attacks(int sq, uint64_t occupied) {
+static uint64_t reference_rook_attacks(int sq, uint64_t occupied) {
     uint64_t attacks = 0;
     const int file = sq & 7;
     const int rank = sq >> 3;
@@ -61,7 +61,7 @@ static uint64_t naive_rook_attacks(int sq, uint64_t occupied) {
     return attacks;
 }
 
-static uint64_t naive_bishop_attacks(int sq, uint64_t occupied) {
+static uint64_t reference_bishop_attacks(int sq, uint64_t occupied) {
     uint64_t attacks = 0;
     int file = sq & 7;
     int rank = sq >> 3;
@@ -167,10 +167,10 @@ TEST_CLASS(CoreMoveAndBitboardTests) {
                                   SetMask(d2) | SetMask(b4) | SetMask(f6) |
                                   SetMask(b6) | SetMask(f2) | SetMask(b2);
 
-        Assert::AreEqual((unsigned long long)naive_rook_attacks(d4, occupied),
+        Assert::AreEqual((unsigned long long)reference_rook_attacks(d4, occupied),
                          (unsigned long long)rook_attacks(d4, occupied));
 
-        Assert::AreEqual((unsigned long long)naive_bishop_attacks(d4, occupied),
+        Assert::AreEqual((unsigned long long)reference_bishop_attacks(d4, occupied),
                          (unsigned long long)bishop_attacks(d4, occupied));
     }
 
@@ -191,6 +191,7 @@ TEST_CLASS(CoreMoveAndBitboardTests) {
     }
 
     TEST_METHOD(DoNullAndUndoNullRestorePositionFields) {
+        // Position with en passant available on d6.
         PositionGuard position(
             CreatePositionFromEPD((char *)"4k3/8/8/3pP3/8/8/8/4K3 w - d6"));
         PositionGuard snapshot(ClonePosition(position.get()));
@@ -204,6 +205,7 @@ TEST_CLASS(CoreMoveAndBitboardTests) {
     }
 
     TEST_METHOD(RecalcAttacksRebuildsAtkSetDerivedData) {
+        // Position with a white bishop on d5.
         PositionGuard position(
             CreatePositionFromEPD((char *)"4k3/8/8/3B4/8/8/8/4K3 w - -"));
 
