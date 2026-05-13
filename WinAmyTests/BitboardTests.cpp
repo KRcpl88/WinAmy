@@ -127,6 +127,53 @@ TEST_CLASS(BitboardTests) {
         }
     }
 
+    TEST_METHOD(FindSetBitAdvancesAsLowBitsCleared) {
+        // Set bits at various positions, then clear from low to high
+        BitBoard b = 0;
+        SetBit(b, 4);
+        SetBit(b, 17);
+        SetBit(b, 33);
+        SetBit(b, 58);
+
+        Assert::AreEqual(4, FindSetBit(b));
+        ClrBit(b, 4);
+        Assert::AreEqual(17, FindSetBit(b));
+        ClrBit(b, 17);
+        Assert::AreEqual(33, FindSetBit(b));
+        ClrBit(b, 33);
+        Assert::AreEqual(58, FindSetBit(b));
+    }
+
+    TEST_METHOD(FindSetBitWithAdjacentBits) {
+        // Two adjacent bits — should always find the lower one
+        for (int i = 0; i < 63; i++) {
+            BitBoard b = 0;
+            SetBit(b, i);
+            SetBit(b, i + 1);
+            Assert::AreEqual(i, FindSetBit(b));
+        }
+    }
+
+    TEST_METHOD(FindSetBitIteratesAllSetBits) {
+        // Simulate a bit-scan loop: set known bits, extract them one by one
+        BitBoard b = 0;
+        int squares[] = {0, 7, 15, 28, 35, 42, 56, 63};
+        int numSquares = 8;
+
+        for (int i = 0; i < numSquares; i++)
+            SetBit(b, squares[i]);
+
+        Assert::AreEqual(numSquares, CountBits(b));
+
+        // Extract bits in order using FindSetBit + clear pattern
+        for (int i = 0; i < numSquares; i++) {
+            int found = FindSetBit(b);
+            Assert::AreEqual(squares[i], found);
+            ClrBit(b, found);
+        }
+        Assert::AreEqual(0, CountBits(b));
+    }
+
     TEST_METHOD(CountBitsReturnsNumberOfSetBits) {
         BitBoard empty = 0;
         Assert::AreEqual(0, CountBits(empty));
