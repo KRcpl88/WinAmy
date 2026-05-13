@@ -192,8 +192,8 @@ TEST_CLASS(CoreMoveAndBitboardTests) {
 
     TEST_METHOD(DoNullAndUndoNullRestorePositionFields) {
         // Position with en passant available on d6.
-        PositionGuard position(
-            CreatePositionFromEPD((char *)"4k3/8/8/3pP3/8/8/8/4K3 w - d6"));
+        char epd[] = "4k3/8/8/3pP3/8/8/8/4K3 w - d6";
+        PositionGuard position(CreatePositionFromEPD(epd));
         PositionGuard snapshot(ClonePosition(position.get()));
 
         DoNull(position.get());
@@ -206,8 +206,8 @@ TEST_CLASS(CoreMoveAndBitboardTests) {
 
     TEST_METHOD(RecalcAttacksRebuildsAtkSetDerivedData) {
         // Position with a white bishop on d5.
-        PositionGuard position(
-            CreatePositionFromEPD((char *)"4k3/8/8/3B4/8/8/8/4K3 w - -"));
+        char epd[] = "4k3/8/8/3B4/8/8/8/4K3 w - -";
+        PositionGuard position(CreatePositionFromEPD(epd));
 
         for (int i = 0; i < 64; i++) {
             position.get()->atkTo[i] = 0;
