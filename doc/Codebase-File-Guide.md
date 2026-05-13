@@ -92,11 +92,11 @@ This document explains how the code works in detail and what each file does.
   - Win-at-Chess tactical benchmark set.
 - `/home/runner/work/WinAmy/WinAmy/EPD/wacnew.epd`
   - Alternate/new WAC variant set.
-- `/home/runner/work/WinAmy/WinAmy/EPD/BT2630.epd` *(note: file is `bt2630.epd` on disk)*
+- `/home/runner/work/WinAmy/WinAmy/EPD/bt2630.epd`
   - BT2630 benchmark positions.
-- `/home/runner/work/WinAmy/WinAmy/EPD/LCT2.epd` *(file: `lct2.epd`)*
+- `/home/runner/work/WinAmy/WinAmy/EPD/lct2.epd`
   - LCT2 benchmark positions.
-- `/home/runner/work/WinAmy/WinAmy/EPD/BS2830.epd` *(file: `bs2830.epd`)*
+- `/home/runner/work/WinAmy/WinAmy/EPD/bs2830.epd`
   - BS2830 benchmark positions.
 - `/home/runner/work/WinAmy/WinAmy/EPD/BK.epd`
   - Additional EPD benchmark/analysis set.
@@ -309,8 +309,7 @@ This document explains how the code works in detail and what each file does.
 ## 3) Important practical notes
 
 - Build system is Windows-first MSBuild/Visual Studio.
-- CI and release workflows generate `/home/runner/work/WinAmy/WinAmy/Include/config.h` before compilation (it is not tracked in git).
+- CI and release workflows generate `/home/runner/work/WinAmy/WinAmy/include/config.h` before compilation (it is not tracked in git).
 - Main executable output path for x64 builds is under:
   - `/home/runner/work/WinAmy/WinAmy/x64/Debug/WinAmy.exe`
   - `/home/runner/work/WinAmy/WinAmy/x64/Release/WinAmy.exe`
-
