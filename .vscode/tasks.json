@@ -60,6 +60,22 @@
             "group": "build",
             "problemMatcher": "$msCompile",
             "detail": "Clean and rebuild the WinAmy solution in Debug x64 configuration"
+        },
+        {
+            "label": "Run Unit Tests (Debug x64)",
+            "type": "shell",
+            "command": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\Common7\\IDE\\CommonExtensions\\Microsoft\\TestWindow\\vstest.console.exe",
+            "args": [
+                "${workspaceFolder}\\x64\\Debug\\WinAmyTests.dll",
+                "/Platform:x64"
+            ],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "dependsOn": "Build WinAmy (Debug x64)",
+            "problemMatcher": "$msCompile",
+            "detail": "Build and run the WinAmyTests C++ unit tests (Debug x64)"
         }
     ]
 }
