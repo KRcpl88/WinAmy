@@ -43,7 +43,7 @@ This document explains how the code works in detail and what each file does.
 
 ## 2) Repository file-by-file reference
 
-## Root files
+### Root files
 
 - `/home/runner/work/WinAmy/WinAmy/README.md`
   - Primary user/build documentation for Windows (VS/MSBuild, VS Code tasks, runtime flags).
@@ -62,7 +62,7 @@ This document explains how the code works in detail and what each file does.
 - `/home/runner/work/WinAmy/WinAmy/AmyLogo.gif`
   - Repository artwork asset.
 
-## GitHub and editor configuration
+### GitHub and editor configuration
 
 - `/home/runner/work/WinAmy/WinAmy/.github/workflows/c-cpp.yml`
   - Windows CI: checkout, setup MSBuild, generate `Include/config.h`, build solution.
@@ -75,14 +75,14 @@ This document explains how the code works in detail and what each file does.
 - `/home/runner/work/WinAmy/WinAmy/.vscode/launch.json`
   - VS Code debug/launch profiles targeting built Debug/Release binaries.
 
-## Documentation
+### Documentation
 
 - `/home/runner/work/WinAmy/WinAmy/doc/Handbook.md`
   - User and operator handbook: runtime options, command usage, test suites, book workflows.
 - `/home/runner/work/WinAmy/WinAmy/doc/Amy.6`
   - Manpage-style command reference.
 
-## Data directories
+### Data directories
 
 ### EPD test suites (`/home/runner/work/WinAmy/WinAmy/EPD`)
 
@@ -118,7 +118,7 @@ This document explains how the code works in detail and what each file does.
 - `/home/runner/work/WinAmy/WinAmy/PGN/eco.pgn`
   - ECO reference PGN for ECO database generation.
 
-## Executable project (`/home/runner/work/WinAmy/WinAmy/WinAmy`)
+### Executable project (`/home/runner/work/WinAmy/WinAmy/WinAmy`)
 
 - `/home/runner/work/WinAmy/WinAmy/WinAmy/main.c`
   - **Actual entrypoint** for production binary.
@@ -134,7 +134,7 @@ This document explains how the code works in detail and what each file does.
 - `/home/runner/work/WinAmy/WinAmy/WinAmy/.gitignore`
   - Local ignore rules for this folder.
 
-## Core engine project (`/home/runner/work/WinAmy/WinAmy/src`)
+### Core engine project (`/home/runner/work/WinAmy/WinAmy/src`)
 
 - `/home/runner/work/WinAmy/WinAmy/src/src.vcxproj`
   - Static-library project containing almost all engine modules.
@@ -246,7 +246,7 @@ This document explains how the code works in detail and what each file does.
 - `/home/runner/work/WinAmy/WinAmy/src/test_yaml.c`
   - Unit-like checks for YAML parser and typed lookup helpers.
 
-## Public headers (`/home/runner/work/WinAmy/WinAmy/include`)
+### Public headers (`/home/runner/work/WinAmy/WinAmy/include`)
 
 > Most headers are module interfaces matching same-named `src/*.c` files.
 
@@ -295,7 +295,7 @@ This document explains how the code works in detail and what each file does.
 - `/home/runner/work/WinAmy/WinAmy/include/test_dbase.h` — internal dbase test entrypoints.
 - `/home/runner/work/WinAmy/WinAmy/include/test_blunder.h` — internal blunder test entrypoints.
 
-## Visual Studio test project (`/home/runner/work/WinAmy/WinAmy/WinAmyTests`)
+### Visual Studio test project (`/home/runner/work/WinAmy/WinAmy/WinAmyTests`)
 
 - `/home/runner/work/WinAmy/WinAmy/WinAmyTests/WinAmyTests.vcxproj`
   - Test DLL project using `CppUnitTestFramework`, references engine `src` static library.
