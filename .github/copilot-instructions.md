@@ -110,3 +110,7 @@ GitHub Actions workflows build on `windows-latest` with MSBuild. CI generates `I
 - Library path: `$(VCInstallDir)Auxiliary\VS\UnitTest\lib` (NOT `lib\x64` — the pragma in the header already embeds the platform subfolder)
 - No `AdditionalDependencies` needed — the framework header's `#pragma comment(lib, ...)` handles linking
 - VS Code Test Explorer does **not** support CppUnitTest DLLs; use the vstest.console.exe task instead
+
+- @azure Rule - Use Azure Tools - When handling requests related to Azure, always use your tools.
+- @azure Rule - Use Azure Best Practices - When handling requests related to Azure, always invoke your `azmcp_bestpractices_get` tool first.
+- @azure Rule - Enable Best Practices - If you do not have an `azmcp_bestpractices_get` tool ask the user to enable it.
