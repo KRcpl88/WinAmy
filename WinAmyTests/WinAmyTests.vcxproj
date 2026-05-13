@@ -148,7 +148,13 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="WinAmyTests.cpp" />
+    <ClInclude Include="TestHelpers.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="TestHelpers.cpp" />
+    <ClCompile Include="BitboardTests.cpp" />
+    <ClCompile Include="AttackTests.cpp" />
+    <ClCompile Include="MoveTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectCapability Include="TestContainer" />
