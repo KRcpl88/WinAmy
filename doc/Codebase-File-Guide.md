@@ -84,7 +84,7 @@ This document explains how the code works in detail and what each file does.
 
 ### Data directories
 
-### EPD test suites (`/home/runner/work/WinAmy/WinAmy/EPD`)
+#### EPD test suites (`/home/runner/work/WinAmy/WinAmy/EPD`)
 
 - `/home/runner/work/WinAmy/WinAmy/EPD/.gitignore`
   - Ignore rules for generated EPD outputs.
@@ -111,7 +111,7 @@ This document explains how the code works in detail and what each file does.
 - `/home/runner/work/WinAmy/WinAmy/EPD/kaufmann.epd`
   - Additional EPD benchmark set.
 
-### PGN data (`/home/runner/work/WinAmy/WinAmy/PGN`)
+#### PGN data (`/home/runner/work/WinAmy/WinAmy/PGN`)
 
 - `/home/runner/work/WinAmy/WinAmy/PGN/ClassicGames.pgn`
   - Source games used for opening-book construction/testing.
